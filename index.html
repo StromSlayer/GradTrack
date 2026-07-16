@@ -491,3 +491,1064 @@ document.getElementById("status").innerHTML=status;
 renderTable();
 
 }
+    function renderTable(){
+
+const table=document.getElementById("subjectTable");
+
+table.innerHTML="";
+
+subjects.forEach((s,index)=>{
+
+table.innerHTML+=`
+
+<tr>
+
+<td>
+<b>${s.code}</b><br>
+<small>${s.name}</small>
+</td>
+
+<td>${s.credits}</td>
+
+<td>
+
+<select onchange="changeGrade(${index},this.value)">
+
+<option ${s.grade=="A"?"selected":""}>A</option>
+
+<option ${s.grade=="B+"?"selected":""}>B+</option>
+
+<option ${s.grade=="B"?"selected":""}>B</option>
+
+<option ${s.grade=="C+"?"selected":""}>C+</option>
+
+<option ${s.grade=="C"?"selected":""}>C</option>
+
+<option ${s.grade=="D+"?"selected":""}>D+</option>
+
+<option ${s.grade=="D"?"selected":""}>D</option>
+
+<option ${s.grade=="F"?"selected":""}>F</option>
+
+</select>
+
+<button
+style="margin-left:8px;color:red"
+onclick="deleteSubject(${index})">
+
+ลบ
+
+</button>
+
+</td>
+
+</tr>
+
+`;
+
+});
+
+}
+
+function changeGrade(index,grade){
+
+subjects[index].grade=grade;
+
+calculate();
+
+}
+
+function deleteSubject(index){
+
+subjects.splice(index,1);
+
+calculate();
+
+}
+
+function addSubject(){
+
+const code=document.getElementById("code").value;
+
+const name=document.getElementById("name").value;
+
+const credits=parseInt(document.getElementById("credit").value);
+
+const grade=document.getElementById("grade").value;
+
+if(code==""||name==""){
+
+alert("กรอกข้อมูลให้ครบ");
+
+return;
+
+}
+
+subjects.push({
+
+code,
+
+name,
+
+credits,
+
+grade
+
+});
+
+document.getElementById("code").value="";
+document.getElementById("name").value="";
+document.getElementById("credit").value=3;
+document.getElementById("grade").value="A";
+
+calculate();
+
+}
+    function saveData(){
+
+localStorage.setItem(
+"subjects",
+JSON.stringify(subjects)
+);
+
+}
+
+function loadData(){
+
+const data=localStorage.getItem("subjects");
+
+if(data){
+
+subjects=JSON.parse(data);
+
+}
+
+}
+
+function calculate(){
+
+let totalCredits=0;
+let totalPoint=0;
+let earned=0;
+
+subjects.forEach(s=>{
+
+totalCredits+=s.credits;
+
+earned+=s.credits;
+
+totalPoint+=GRADE_POINTS[s.grade]*s.credits;
+
+});
+
+let gpax=(totalPoint/totalCredits).toFixed(2);
+
+document.getElementById("gpax").innerHTML=gpax;
+
+document.getElementById("creditText").innerHTML=
+earned+" / 133";
+
+let progress=(earned/133)*100;
+
+document.getElementById("progressBar").style.width=
+progress+"%";
+
+let status="ปกติ";
+
+if(gpax<1.75){
+
+status="วิทยาทัณฑ์ <1.75";
+
+}
+else if(gpax<2){
+
+status="วิทยาทัณฑ์ <2.00";
+
+}
+
+document.getElementById("status").innerHTML=status;
+
+renderTable();
+
+saveData();
+
+}
+    function resetData(){
+
+if(confirm("รีเซ็ตข้อมูลทั้งหมดหรือไม่?")){
+
+localStorage.removeItem("subjects");
+
+location.reload();
+
+}
+
+}
+    <button
+class="btn"
+style="background:#dc2626;color:white;"
+onclick="resetData()">
+
+รีเซ็ตข้อมูล
+
+</button>
+    loadData();
+
+calculate();
+    const semesters = [
+    "1/2567",
+    "2/2567",
+    "1/2568",
+    "2/2568",
+    "1/2569"
+];
+
+function calculateSemester(semester){
+
+    const list = subjects.filter(s => s.semester === semester);
+
+    let credit = 0;
+    let point = 0;
+
+    list.forEach(s=>{
+
+        credit += s.credits;
+        point += GRADE_POINTS[s.grade] * s.credits;
+
+    });
+
+    return{
+
+        credits:credit,
+        gpa:credit ? (point/credit).toFixed(2):"0.00"
+
+    };
+
+}
+    function renderSemesterSummary(){
+
+    let html="";
+
+    semesters.forEach(sem=>{
+
+        const data=calculateSemester(sem);
+
+        html+=`
+
+        <div class="card">
+
+        <h3>${sem}</h3>
+
+        <p>GPA : <b>${data.gpa}</b></p>
+
+        <p>หน่วยกิต : ${data.credits}</p>
+
+        </div>
+
+        `;
+
+    });
+
+    const target=document.getElementById("semesterSummary");
+
+    if(target){
+
+        target.innerHTML=html;
+
+    }
+
+}
+renderSemesterSummary();
+    <div class="card">
+
+<h2>ผลการเรียนรายภาคเรียน</h2>
+
+<div id="semesterSummary"></div>
+
+</div>
+const themes={
+
+dark:{
+bg:"#0f172a",
+card:"#1e293b",
+text:"#ffffff"
+},
+
+light:{
+bg:"#f1f5f9",
+card:"#ffffff",
+text:"#111827"
+},
+
+purple:{
+bg:"#312e81",
+card:"#4338ca",
+text:"#ffffff"
+}
+
+};
+
+let currentTheme="dark";
+
+function setTheme(name){
+
+currentTheme=name;
+
+const t=themes[name];
+
+document.body.style.background=t.bg;
+document.body.style.color=t.text;
+
+document.querySelectorAll(".card").forEach(card=>{
+
+card.style.background=t.card;
+
+});
+
+localStorage.setItem("theme",name);
+
+}
+
+function loadTheme(){
+
+const theme=localStorage.getItem("theme");
+
+if(theme){
+
+setTheme(theme);
+
+}
+
+}
+    <div class="card">
+
+<h3>Theme</h3>
+
+<button class="btn" onclick="setTheme('dark')">
+Dark
+</button>
+
+<button class="btn" onclick="setTheme('light')">
+Light
+</button>
+
+<button class="btn" onclick="setTheme('purple')">
+Purple
+</button>
+
+</div>
+<div id="bottomNav">
+
+<button onclick="showTab('dashboard')">
+Dashboard
+</button>
+
+<button onclick="showTab('semester')">
+Semester
+</button>
+
+<button onclick="showTab('subject')">
+Subjects
+</button>
+
+</div>
+#bottomNav{
+
+position:fixed;
+
+bottom:0;
+
+left:0;
+
+right:0;
+
+height:70px;
+
+display:flex;
+
+justify-content:space-around;
+
+align-items:center;
+
+background:#1e293b;
+
+}
+
+#bottomNav button{
+
+background:none;
+
+border:none;
+
+color:white;
+
+font-size:16px;
+
+cursor:pointer;
+
+}
+    function showTab(name){
+
+document.querySelectorAll(".tab").forEach(tab=>{
+
+tab.style.display="none";
+
+});
+
+document.getElementById(name).style.display="block";
+
+}
+    function updateProgress(){
+
+let total=0;
+
+subjects.forEach(s=>{
+
+if(s.grade!="F"){
+
+total+=s.credits;
+
+}
+
+});
+
+const percent=(total/133)*100;
+
+document.getElementById("progressBar").style.width=percent+"%";
+
+document.getElementById("creditText").innerHTML=
+
+`${total} / 133 หน่วยกิต`;
+
+}
+    updateProgress();
+    loadData();
+
+loadTheme();
+
+calculate();
+
+showTab("dashboard");
+    function renderStatistics(){
+
+let totalCredits=0;
+let passCredits=0;
+let failCredits=0;
+
+let gradeCount={
+"A":0,
+"B+":0,
+"B":0,
+"C+":0,
+"C":0,
+"D+":0,
+"D":0,
+"F":0
+};
+
+subjects.forEach(s=>{
+
+totalCredits+=s.credits;
+
+gradeCount[s.grade]++;
+
+if(s.grade=="F"){
+
+failCredits+=s.credits;
+
+}else{
+
+passCredits+=s.credits;
+
+}
+
+});
+
+const box=document.getElementById("statistics");
+
+if(!box)return;
+
+box.innerHTML=`
+
+<div class="card">
+
+<h3>สถิติผลการเรียน</h3>
+
+<p>ผ่านทั้งหมด : ${passCredits} หน่วยกิต</p>
+
+<p>ติด F : ${failCredits} หน่วยกิต</p>
+
+<p>จำนวนวิชา : ${subjects.length}</p>
+
+<hr>
+
+<p>A : ${gradeCount["A"]}</p>
+
+<p>B+ : ${gradeCount["B+"]}</p>
+
+<p>B : ${gradeCount["B"]}</p>
+
+<p>C+ : ${gradeCount["C+"]}</p>
+
+<p>C : ${gradeCount["C"]}</p>
+
+<p>D+ : ${gradeCount["D+"]}</p>
+
+<p>D : ${gradeCount["D"]}</p>
+
+<p>F : ${gradeCount["F"]}</p>
+
+</div>
+
+`;
+
+}
+ renderStatistics();   
+    <div id="statistics"></div>
+    function targetCalculator(target){
+
+let credits=0;
+let points=0;
+
+subjects.forEach(s=>{
+
+credits+=s.credits;
+points+=GRADE_POINTS[s.grade]*s.credits;
+
+});
+
+const remain=133-credits;
+
+const need=((target*(credits+remain))-points)/remain;
+
+return Math.max(0,need).toFixed(2);
+
+}
+    <input
+id="search"
+placeholder="ค้นหารายวิชา"
+class="input"
+onkeyup="searchSubject()">
+function searchSubject(){
+
+const keyword=document
+.getElementById("search")
+.value
+.toLowerCase();
+
+const rows=document.querySelectorAll("#subjectTable tr");
+
+rows.forEach(r=>{
+
+const text=r.innerText.toLowerCase();
+
+r.style.display=text.includes(keyword)
+?"":"none";
+
+});
+
+}
+    function sortByGrade(){
+
+subjects.sort((a,b)=>{
+
+return GRADE_POINTS[b.grade]-GRADE_POINTS[a.grade];
+
+});
+
+calculate();
+
+}
+    <button
+class="btn"
+onclick="sortByGrade()">
+
+เรียงตามเกรด
+
+</button>
+function exportData(){
+
+    const dataStr = JSON.stringify(subjects, null, 2);
+    const blob = new Blob([dataStr], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'subjects_backup.json';
+    a.click();
+
+    URL.revokeObjectURL(url);
+}
+
+function importData(event){
+
+    const file = event.target.files[0];
+    if(!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = function(e){
+        try{
+            subjects = JSON.parse(e.target.result);
+            calculate();
+            saveData();
+            alert('นำเข้าข้อมูลสำเร็จ');
+        }catch(err){
+            alert('ไฟล์ไม่ถูกต้อง');
+        }
+    };
+
+    reader.readAsText(file);
+}
+    <button
+class="btn"
+onclick="exportData()">
+
+Export JSON
+
+</button>
+<input
+type="file"
+id="importFile"
+accept=".json"
+onchange="importData(event)">
+function importData(event){
+
+const file=
+event.target.files[0];
+
+if(!file)return;
+
+const reader=
+new FileReader();
+
+reader.onload=function(e){
+
+try{
+
+subjects=
+JSON.parse(e.target.result);
+
+calculate();
+
+saveData();
+
+alert("นำเข้าข้อมูลสำเร็จ");
+
+}catch{
+
+alert("ไฟล์ไม่ถูกต้อง");
+
+}
+
+};
+
+reader.readAsText(file);
+
+}
+    function printReport(){
+
+let report="";
+
+report+="DDT GRADE REPORT\n\n";
+
+subjects.forEach(s=>{
+
+report+=
+`${s.code}
+${s.name}
+(${s.credits})
+Grade:${s.grade}\n`;
+
+});
+
+report+=`\nGPAX:
+${document.getElementById("gpax").innerText}`;
+
+const win=
+window.open();
+
+win.document.write(
+
+`<pre>${report}</pre>`
+
+);
+
+win.print();
+
+}
+    <button
+class="btn"
+onclick="printReport()">
+
+Print Report
+
+</button>
+function clearAllSubjects(){
+
+if(
+!confirm(
+"ลบรายวิชาทั้งหมด?"
+)
+)return;
+
+subjects=[];
+
+calculate();
+
+saveData();
+
+}
+    <button
+class="btn"
+style="
+background:#dc2626;
+color:white;
+"
+onclick="clearAllSubjects()">
+
+ลบทั้งหมด
+
+</button>
+function gradeSummary(){
+
+const summary={
+
+A:0,
+"B+":0,
+B:0,
+"C+":0,
+C:0,
+"D+":0,
+D:0,
+F:0
+
+};
+
+subjects.forEach(s=>{
+
+summary[s.grade]++;
+
+});
+
+return summary;
+
+}
+    const g=gradeSummary();
+
+console.log(g.A);
+console.log(g["B+"]);
+console.log(g.F);
+    function riskySubjects(){
+
+return subjects.filter(s=>{
+
+return (
+s.grade==="D" ||
+s.grade==="D+"||
+s.grade==="F"
+);
+
+});
+
+}
+    function exportJSON(){
+
+const data=JSON.stringify(subjects,null,2);
+
+const blob=new Blob([data],{
+type:"application/json"
+});
+
+const url=URL.createObjectURL(blob);
+
+const a=document.createElement("a");
+
+a.href=url;
+
+a.download="subjects.json";
+
+a.click();
+
+URL.revokeObjectURL(url);
+
+}
+    <button class="btn" onclick="exportJSON()">
+Export JSON
+</button>
+<input
+type="file"
+id="importFile"
+accept=".json"
+onchange="importJSON(event)">
+function importJSON(event){
+
+const file=event.target.files[0];
+
+if(!file)return;
+
+const reader=new FileReader();
+
+reader.onload=function(e){
+
+subjects=JSON.parse(e.target.result);
+
+calculate();
+
+};
+
+reader.readAsText(file);
+
+}
+    function report(){
+
+let text="";
+
+subjects.forEach(s=>{
+
+text+=`${s.code} ${s.name} ${s.grade}\n`;
+
+});
+
+text+=`\nGPAX : ${document.getElementById("gpax").innerText}`;
+
+alert(text);
+
+}
+    <button class="btn"
+onclick="report()">
+
+รายงาน
+
+</button>
+function downloadReport(){
+
+let text="DDT GRADE REPORT\n\n";
+
+subjects.forEach(s=>{
+
+text+=`${s.code} ${s.name} ${s.grade}\n`;
+
+});
+
+text+=`\nGPAX : ${document.getElementById("gpax").innerText}`;
+
+const blob=new Blob([text],{
+type:"text/plain"
+});
+
+const url=URL.createObjectURL(blob);
+
+const a=document.createElement("a");
+
+a.href=url;
+
+a.download="report.txt";
+
+a.click();
+
+URL.revokeObjectURL(url);
+
+}
+    <button class="btn"
+onclick="downloadReport()">
+
+ดาวน์โหลดรายงาน
+
+</button>
+</div>
+
+<div class="card">
+
+<h3>หน่วยกิตสะสม</h3>
+
+<div class="progress">
+
+<div
+class="progress-bar"
+id="progressBar">
+
+</div>
+
+</div>
+
+<div id="creditText">
+0 / 133
+</div>
+
+</div>
+.dashboardCard{
+
+text-align:center;
+
+padding:25px;
+
+border-radius:25px;
+
+background:#1e293b;
+
+margin-bottom:20px;
+
+}
+
+.cardTitle{
+
+font-size:18px;
+
+font-weight:bold;
+
+margin-bottom:15px;
+
+}
+
+.gpaxNumber{
+
+font-size:65px;
+
+font-weight:900;
+
+color:#60a5fa;
+
+}
+
+.status{
+
+margin-top:15px;
+
+font-size:18px;
+
+font-weight:bold;
+
+color:#22c55e;
+
+}
+    document.getElementById("status").innerHTML=status;
+    const statusBox=document.getElementById("status");
+
+statusBox.innerHTML=status;
+
+if(gpax<1.75){
+
+statusBox.style.color="#ef4444";
+
+}
+else if(gpax<2){
+
+statusBox.style.color="#f59e0b";
+
+}
+else{
+
+statusBox.style.color="#22c55e";
+
+}
+    table.innerHTML+=`
+
+<tr>
+
+<td>
+
+<b>${s.code}</b>
+
+<br>
+
+<small>${s.name}</small>
+
+</td>
+
+<td>
+
+${s.credits}
+
+</td>
+
+<td>
+
+<select onchange="changeGrade(${index},this.value)">
+
+${Object.keys(GRADE_POINTS).map(g=>
+
+`<option value="${g}" ${g==s.grade?"selected":""}>${g}</option>`
+
+).join("")}
+
+</select>
+
+</td>
+
+<td>
+
+<button onclick="deleteSubject(${index})">
+
+🗑
+
+</button>
+
+</td>
+
+</tr>
+
+`;
+    .card{
+
+transition:.25s;
+
+}
+
+.card:hover{
+
+transform:translateY(-3px);
+
+box-shadow:0 15px 40px rgba(0,0,0,.25);
+
+}
+
+button{
+
+transition:.2s;
+
+cursor:pointer;
+
+}
+
+button:hover{
+
+transform:scale(1.05);
+
+}
+
+button:active{
+
+transform:scale(.95);
+
+}
+    @media(max-width:480px){
+
+.card{
+
+padding:15px;
+
+}
+
+.gpaxNumber{
+
+font-size:48px;
+
+}
+
+table{
+
+font-size:12px;
+
+}
+
+button{
+
+font-size:12px;
+
+padding:8px;
+
+}
+
+}
+    
