@@ -1,1870 +1,660 @@
-<!DOCTYPE html>
-<html lang="th">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DDT Grade Simulator</title>
+import React, { useState, useEffect, useMemo } from 'react';
+import { 
+  BookOpen, 
+  Award, 
+  Plus, 
+  Trash2, 
+  RefreshCw, 
+  CheckCircle, 
+  AlertTriangle, 
+  Info,
+  GraduationCap,
+  Sparkles,
+  PieChart,
+  ListFilter,
+  TrendingUp,
+  Calendar,
+  Save,
+  ChevronDown,
+  Battery,
+  Wifi,
+  RotateCcw,
+  ShieldCheck
+} from 'lucide-react';
 
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&family=Sarabun:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+const INITIAL_SUBJECTS = [
+  // --- ภาคการศึกษาที่ 1/2567 ---
+  { id: '1_1', semester: '1/2567', code: 'ART101', name: 'สุนทรียศาสตร์ ศิลปะและการออกแบบ', credits: 3, grade: 'D+', category: 'gen_human' },
+  { id: '1_2', semester: '1/2567', code: 'DES101', name: 'องค์ประกอบศิลป์และทฤษฎีสีเพื่อการออกแบบ', credits: 3, grade: 'D', category: 'core' },
+  { id: '1_3', semester: '1/2567', code: 'DES102', name: 'การวาดภาพเพื่อการออกแบบ', credits: 3, grade: 'D', category: 'core' },
+  { id: '1_4', semester: '1/2567', code: 'DIG101', name: 'คอมพิวเตอร์เพื่องานออกแบบและตกแต่งภาพ', credits: 3, grade: 'D+', category: 'major_req' },
+  { id: '1_5', semester: '1/2567', code: 'GEN101', name: 'สุขภาวะกายและจิต', credits: 3, grade: 'D+', category: 'gen_sci' },
+  { id: '1_6', semester: '1/2567', code: 'GEN102', name: 'คณิตศาสตร์และสถิติในชีวิตประจำวัน', credits: 3, grade: 'D', category: 'gen_math' },
+  { id: '1_7', semester: '1/2567', code: 'LNG101', name: 'ภาษาอังกฤษปรับพื้นฐาน 1', credits: 0, grade: 'S', category: 'gen_inter' },
 
-    <script src="https://cdn.tailwindcss.com"></script>
+  // --- ภาคการศึกษาที่ 2/2567 ---
+  { id: '2_1', semester: '2/2567', code: 'DIG102', name: 'คอมพิวเตอร์เพื่อการออกแบบมัลติมีเดีย', credits: 3, grade: 'C+', category: 'major_req' },
+  { id: '2_2', semester: '2/2567', code: 'DIG103', name: 'คอมพิวเตอร์เพื่อการออกแบบ 3 มิติ', credits: 3, grade: 'D', category: 'major_req' },
+  { id: '2_3', semester: '2/2567', code: 'DES103', name: 'แนวคิดและการคิดวิเคราะห์เชิงออกแบบ', credits: 3, grade: 'D', category: 'core' },
+  { id: '2_4', semester: '2/2567', code: 'DES104', name: 'การออกแบบปฏิสัมพันธ์ขั้นพื้นฐาน', credits: 3, grade: 'C+', category: 'core' },
+  { id: '2_5', semester: '2/2567', code: 'GEN103', name: 'การสื่อสารเพื่อการนำเสนอ', credits: 2, grade: 'B', category: 'gen_thai' },
+  { id: '2_6', semester: '2/2567', code: 'GEN104', name: 'การอ่านและการเขียนภาษาไทยเพื่ออาชีพ', credits: 2, grade: 'C+', category: 'gen_thai' },
+  { id: '2_7', semester: '2/2567', code: 'LNG102', name: 'ภาษาอังกฤษปรับพื้นฐาน 2', credits: 0, grade: 'S', category: 'gen_inter' },
 
-    <style>
-        body{
-            margin:0;
-            background:#0f172a;
-            color:white;
-            font-family:'Sarabun',sans-serif;
-        }
+  // --- ภาคการศึกษาที่ 1/2568 ---
+  { id: '3_1', semester: '1/2568', code: 'DIG201', name: 'การสร้างแบบร่างและการสร้างแบบจำลอง', credits: 3, grade: 'C+', category: 'major_req' },
+  { id: '3_2', semester: '1/2568', code: 'DES201', name: 'การออกแบบกราฟิก', credits: 3, grade: 'D', category: 'core' },
+  { id: '3_3', semester: '1/2568', code: 'DES202', name: 'การเขียนโปรแกรมเบื้องต้นเพื่อการออกแบบและเทคโนโลยี', credits: 3, grade: 'B+', category: 'core' },
+  { id: '3_4', semester: '1/2568', code: 'DIG202', name: 'การออกแบบนวัตกรรมดิจิทัลเบื้องต้น', credits: 4, grade: 'D+', category: 'major_req' },
+  { id: '3_5', semester: '1/2568', code: 'GEN105', name: 'วิทยาศาสตร์เพื่อคุณภาพชีวิต', credits: 3, grade: 'B+', category: 'gen_sci' },
+  { id: '3_6', semester: '1/2568', code: 'LNG103', name: 'ภาษาอังกฤษเพื่อการสื่อสาร', credits: 2, grade: 'W', category: 'gen_inter' },
+  { id: '3_7', semester: '1/2568', code: 'CHN101', name: 'ภาษาจีนกลาง 1', credits: 1, grade: 'F', category: 'free' },
 
-        .card{
-            background:#1e293b;
-            border-radius:25px;
-            padding:18px;
-            margin-bottom:18px;
-        }
+  // --- ภาคการศึกษาที่ 2/2568 ---
+  { id: '4_1', semester: '2/2568', code: 'DIG203', name: 'ระบบคอมพิวเตอร์พื้นฐาน', credits: 3, grade: 'D', category: 'major_req' },
+  { id: '4_2', semester: '2/2568', code: 'DIG204', name: 'การออกแบบเว็บไซต์เพื่ออุปกรณ์เคลื่อนที่', credits: 3, grade: 'C+', category: 'major_req' },
+  { id: '4_3', semester: '2/2568', code: 'DIG205', name: 'การออกแบบนวัตกรรมดิจิทัลเพื่องาน IoT', credits: 4, grade: 'D', category: 'major_req' },
+  { id: '4_4', semester: '2/2568', code: 'DES203', name: 'การออกแบบอินโฟกราฟิก', credits: 3, grade: 'D+', category: 'core' },
+  { id: '4_5', semester: '2/2568', code: 'GEN106', name: 'การคิดสร้างสรรค์เพื่อสังคม', credits: 3, grade: 'C+', category: 'gen_social' },
+  { id: '4_6', semester: '2/2568', code: 'LNG104', name: 'ภาษาอังกฤษเพื่อการสื่อสาร (เรียนซ้ำ)', credits: 2, grade: 'D', category: 'gen_inter' },
 
-        .btn{
-            padding:10px 18px;
-            border:none;
-            border-radius:15px;
-            cursor:pointer;
-            font-weight:bold;
-        }
+  // --- ภาคการศึกษาที่ 1/2569 (ภาคปัจจุบัน - เกรดว่างเพื่อใช้คำนวณพยากรณ์ล่วงหน้า) ---
+  { id: '5_1', semester: '1/2569', code: 'DES301', name: 'ปัจจัยและความสัมพันธ์ระหว่างมนุษย์กับการออกแบบ', credits: 3, grade: ' ', category: 'core' },
+  { id: '5_2', semester: '1/2569', code: 'DIG301', name: 'การออกแบบนวัตกรรมดิจิทัลเชิงสร้างสรรค์ 1', credits: 4, grade: ' ', category: 'major_req' },
+  { id: '5_3', semester: '1/2569', code: 'DES302', name: 'สัมมนาการออกแบบและเทคโนโลยี', credits: 3, grade: ' ', category: 'core' },
+  { id: '5_4', semester: '1/2569', code: 'LAW301', name: 'กฎหมายทรัพย์สินทางปัญญาเพื่องานออกแบบ', credits: 3, grade: ' ', category: 'free' },
+  { id: '5_5', semester: '1/2569', code: 'GEN107', name: 'หลักปรัชญาของเศรษฐกิจพอเพียง', credits: 3, grade: ' ', category: 'gen_social' },
+  { id: '5_6', semester: '1/2569', code: 'GEN108', name: 'ภาวะผู้นำและบุคลิกภาพ', credits: 1, grade: ' ', category: 'gen_human' }
+];
 
-        .btn-primary{
-            background:#2563eb;
-            color:white;
-        }
-
-        .input{
-            width:100%;
-            padding:10px;
-            border-radius:10px;
-            border:none;
-            margin-top:5px;
-            margin-bottom:10px;
-            background:#334155;
-            color:white;
-        }
-
-        table{
-            width:100%;
-            border-collapse:collapse;
-        }
-
-        th,td{
-            padding:10px;
-            border-bottom:1px solid #334155;
-            font-size:14px;
-        }
-
-        select{
-            background:#1e293b;
-            color:white;
-            border:none;
-            padding:6px;
-            border-radius:8px;
-        }
-
-        .progress{
-            width:100%;
-            height:12px;
-            background:#334155;
-            border-radius:30px;
-            overflow:hidden;
-        }
-
-        .progress-bar{
-            height:100%;
-            background:linear-gradient(90deg,#10b981,#6366f1);
-            width:0%;
-        }
-
-        .tab{
-            display:none;
-        }
-
-        .tab.active{
-            display:block;
-        }
-
-    </style>
-</head>
-
-<body>
-
-<div class="max-w-md mx-auto p-4">
-
-<h1 class="text-3xl font-black mb-5">
-DDT Grade Simulator
-</h1>
-
-<div class="card">
-
-<h2 class="font-bold text-xl">
-GPAX
-</h2>
-
-<div id="gpax"
-style="font-size:55px;font-weight:900;">
-0.00
-</div>
-
-<div id="status">
--
-</div>
-
-</div>
-
-<div class="card">
-
-<h2 class="font-bold mb-3">
-Dashboard
-</h2>
-
-<div class="progress">
-<div class="progress-bar"
-id="progressBar"></div>
-</div>
-
-<p style="margin-top:10px;">
-หน่วยกิตสะสม
-<span id="creditText">
-0 / 133
-</span>
-</p>
-
-</div>
-
-<div class="card">
-
-<h2>
-รายวิชา
-</h2>
-
-<table>
-
-<thead>
-
-<tr>
-
-<th>รหัส</th>
-
-<th>หน่วยกิต</th>
-
-<th>เกรด</th>
-
-</tr>
-
-</thead>
-
-<tbody id="subjectTable">
-
-</tbody>
-
-</table>
-
-</div>
-
-<div class="card">
-
-<h2>
-เพิ่มรายวิชา
-</h2>
-
-<input
-id="code"
-class="input"
-placeholder="รหัสวิชา">
-
-<input
-id="name"
-class="input"
-placeholder="ชื่อวิชา">
-
-<input
-id="credit"
-type="number"
-class="input"
-value="3">
-
-<select id="grade">
-
-<option>A</option>
-<option>B+</option>
-<option>B</option>
-<option>C+</option>
-<option>C</option>
-<option>D+</option>
-<option>D</option>
-<option>F</option>
-
-</select>
-
-<br><br>
-
-<button
-class="btn btn-primary"
-onclick="addSubject()">
-
-เพิ่มรายวิชา
-
-</button>
-
-</div>
-
-</div>
-
-<script src="script.js"></script>
-
-</body>
-</html>
-
-const GRADE_POINTS = {
-    "A":4,
-    "B+":3.5,
-    "B":3,
-    "C+":2.5,
-    "C":2,
-    "D+":1.5,
-    "D":1,
-    "F":0
+const GRADE_VALUES = {
+  'A': 4.0, 'B+': 3.5, 'B': 3.0, 'C+': 2.5, 'C': 2.0, 'D+': 1.5, 'D': 1.0, 'F': 0.0,
+  'S': null, 'W': null, 'I': null, ' ': null
 };
 
-let subjects=[
-
-{
-code:"ART101",
-name:"สุนทรียศาสตร์ ศิลปะและการออกแบบ",
-credits:3,
-grade:"D+"
-},
-
-{
-code:"DES101",
-name:"องค์ประกอบศิลป์และทฤษฎีสี",
-credits:3,
-grade:"D"
-},
-
-{
-code:"DES102",
-name:"การวาดภาพเพื่อการออกแบบ",
-credits:3,
-grade:"D"
-},
-
-{
-code:"DIG101",
-name:"คอมพิวเตอร์เพื่องานออกแบบ",
-credits:3,
-grade:"D+"
-},
-
-{
-code:"GEN101",
-name:"สุขภาวะกายและจิต",
-credits:3,
-grade:"D+"
-},
-
-{
-code:"GEN102",
-name:"คณิตศาสตร์และสถิติ",
-credits:3,
-grade:"D"
-},
-
-{
-code:"DIG102",
-name:"มัลติมีเดีย",
-credits:3,
-grade:"C+"
-},
-
-{
-code:"DIG103",
-name:"3D Design",
-credits:3,
-grade:"D"
-},
-
-{
-code:"DES103",
-name:"Design Thinking",
-credits:3,
-grade:"D"
-},
-
-{
-code:"DES104",
-name:"Interaction Design",
-credits:3,
-grade:"C+"
-},
-
-{
-code:"GEN103",
-name:"การสื่อสาร",
-credits:2,
-grade:"B"
-},
-
-{
-code:"GEN104",
-name:"ภาษาไทย",
-credits:2,
-grade:"C+"
-},
-
-{
-code:"DIG201",
-name:"Modeling",
-credits:3,
-grade:"C+"
-},
-
-{
-code:"DES201",
-name:"Graphic Design",
-credits:3,
-grade:"D"
-},
-
-{
-code:"DES202",
-name:"Programming",
-credits:3,
-grade:"B+"
-},
-
-{
-code:"DIG202",
-name:"Digital Innovation",
-credits:4,
-grade:"D+"
-},
-
-{
-code:"GEN105",
-name:"Science",
-credits:3,
-grade:"B+"
-},
-
-{
-code:"CHN101",
-name:"Chinese",
-credits:1,
-grade:"F"
-},
-
-{
-code:"DIG203",
-name:"Computer System",
-credits:3,
-grade:"D"
-},
-
-{
-code:"DIG204",
-name:"Mobile Web",
-credits:3,
-grade:"C+"
-},
-
-{
-code:"DIG205",
-name:"IoT",
-credits:4,
-grade:"D"
-},
-
-{
-code:"DES203",
-name:"Infographic",
-credits:3,
-grade:"D+"
-},
-
-{
-code:"GEN106",
-name:"Creative Thinking",
-credits:3,
-grade:"C+"
-},
-
-{
-code:"LNG104",
-name:"English",
-credits:2,
-grade:"D"
-},
-
-{
-code:"DES301",
-name:"Human Design",
-credits:3,
-grade:"A"
-},
-
-{
-code:"DIG301",
-name:"Creative Innovation",
-credits:4,
-grade:"A"
-},
-
-{
-code:"DES302",
-name:"Seminar",
-credits:3,
-grade:"B+"
-},
-
-{
-code:"LAW301",
-name:"IP Law",
-credits:3,
-grade:"B"
-},
-
-{
-code:"GEN107",
-name:"เศรษฐกิจพอเพียง",
-credits:3,
-grade:"A"
-},
-
-{
-code:"GEN108",
-name:"Leadership",
-credits:1,
-grade:"A"
-}
-
-];
-
-function calculate(){
-
-let totalCredits=0;
-let totalPoint=0;
-let earned=0;
-
-subjects.forEach(s=>{
-
-totalCredits+=s.credits;
-
-earned+=s.credits;
-
-totalPoint+=GRADE_POINTS[s.grade]*s.credits;
-
-});
-
-let gpax=(totalPoint/totalCredits).toFixed(2);
-
-document.getElementById("gpax").innerHTML=gpax;
-
-document.getElementById("creditText").innerHTML=
-earned+" / 133";
-
-let progress=(earned/133)*100;
-
-document.getElementById("progressBar").style.width=
-progress+"%";
-
-let status="ปกติ";
-
-if(gpax<1.75){
-
-status="วิทยาทัณฑ์ <1.75";
-
-}else if(gpax<2){
-
-status="วิทยาทัณฑ์ <2.00";
-
-}
-
-document.getElementById("status").innerHTML=status;
-
-renderTable();
-
-}
-    function renderTable(){
-
-const table=document.getElementById("subjectTable");
-
-table.innerHTML="";
-
-subjects.forEach((s,index)=>{
-
-table.innerHTML+=`
-
-<tr>
-
-<td>
-<b>${s.code}</b><br>
-<small>${s.name}</small>
-</td>
-
-<td>${s.credits}</td>
-
-<td>
-
-<select onchange="changeGrade(${index},this.value)">
-
-<option ${s.grade=="A"?"selected":""}>A</option>
-
-<option ${s.grade=="B+"?"selected":""}>B+</option>
-
-<option ${s.grade=="B"?"selected":""}>B</option>
-
-<option ${s.grade=="C+"?"selected":""}>C+</option>
-
-<option ${s.grade=="C"?"selected":""}>C</option>
-
-<option ${s.grade=="D+"?"selected":""}>D+</option>
-
-<option ${s.grade=="D"?"selected":""}>D</option>
-
-<option ${s.grade=="F"?"selected":""}>F</option>
-
-</select>
-
-<button
-style="margin-left:8px;color:red"
-onclick="deleteSubject(${index})">
-
-ลบ
-
-</button>
-
-</td>
-
-</tr>
-
-`;
-
-});
-
-}
-
-function changeGrade(index,grade){
-
-subjects[index].grade=grade;
-
-calculate();
-
-}
-
-function deleteSubject(index){
-
-subjects.splice(index,1);
-
-calculate();
-
-}
-
-function addSubject(){
-
-const code=document.getElementById("code").value;
-
-const name=document.getElementById("name").value;
-
-const credits=parseInt(document.getElementById("credit").value);
-
-const grade=document.getElementById("grade").value;
-
-if(code==""||name==""){
-
-alert("กรอกข้อมูลให้ครบ");
-
-return;
-
-}
-
-subjects.push({
-
-code,
-
-name,
-
-credits,
-
-grade
-
-});
-
-document.getElementById("code").value="";
-document.getElementById("name").value="";
-document.getElementById("credit").value=3;
-document.getElementById("grade").value="A";
-
-calculate();
-
-}
-    function saveData(){
-
-localStorage.setItem(
-"subjects",
-JSON.stringify(subjects)
-);
-
-}
-
-function loadData(){
-
-const data=localStorage.getItem("subjects");
-
-if(data){
-
-subjects=JSON.parse(data);
-
-}
-
-}
-
-function calculate(){
-
-let totalCredits=0;
-let totalPoint=0;
-let earned=0;
-
-subjects.forEach(s=>{
-
-totalCredits+=s.credits;
-
-earned+=s.credits;
-
-totalPoint+=GRADE_POINTS[s.grade]*s.credits;
-
-});
-
-let gpax=(totalPoint/totalCredits).toFixed(2);
-
-document.getElementById("gpax").innerHTML=gpax;
-
-document.getElementById("creditText").innerHTML=
-earned+" / 133";
-
-let progress=(earned/133)*100;
-
-document.getElementById("progressBar").style.width=
-progress+"%";
-
-let status="ปกติ";
-
-if(gpax<1.75){
-
-status="วิทยาทัณฑ์ <1.75";
-
-}
-else if(gpax<2){
-
-status="วิทยาทัณฑ์ <2.00";
-
-}
-
-document.getElementById("status").innerHTML=status;
-
-renderTable();
-
-saveData();
-
-}
-    function resetData(){
-
-if(confirm("รีเซ็ตข้อมูลทั้งหมดหรือไม่?")){
-
-localStorage.removeItem("subjects");
-
-location.reload();
-
-}
-
-}
-    <button
-class="btn"
-style="background:#dc2626;color:white;"
-onclick="resetData()">
-
-รีเซ็ตข้อมูล
-
-</button>
-    loadData();
-
-calculate();
-    const semesters = [
-    "1/2567",
-    "2/2567",
-    "1/2568",
-    "2/2568",
-    "1/2569"
-];
-
-function calculateSemester(semester){
-
-    const list = subjects.filter(s => s.semester === semester);
-
-    let credit = 0;
-    let point = 0;
-
-    list.forEach(s=>{
-
-        credit += s.credits;
-        point += GRADE_POINTS[s.grade] * s.credits;
-
-    });
-
-    return{
-
-        credits:credit,
-        gpa:credit ? (point/credit).toFixed(2):"0.00"
-
+const COLOR_THEMES = {
+  luxuryNavy: {
+    name: 'Luxury Navy (กรมท่าหรู)',
+    bg: 'bg-[#0f172a]',
+    text: 'text-slate-100',
+    textMuted: 'text-slate-400',
+    inset: 'shadow-[inset_4px_4px_8px_#080c16,inset_-4px_-4px_8px_#16223e]',
+    outset: 'shadow-[5px_5px_10px_#080c16,-5px_-5px_10px_#16223e]',
+    btnActive: 'shadow-[inset_3px_3px_6px_#080c16,inset_-3px_-3px_6px_#16223e] text-amber-400 font-bold border border-amber-400/20',
+    btnText: 'text-slate-200',
+    primaryColor: '#6366f1'
+  },
+  obsidianDark: {
+    name: 'Obsidian Black (ดำคลาสสิก)',
+    bg: 'bg-[#121214]',
+    text: 'text-gray-100',
+    textMuted: 'text-gray-400',
+    inset: 'shadow-[inset_4px_4px_8px_#09090b,inset_-4px_-4px_8px_#1b1b20]',
+    outset: 'shadow-[5px_5px_10px_#09090b,-5px_-5px_10px_#1b1b20]',
+    btnActive: 'shadow-[inset_3px_3px_6px_#09090b,inset_-3px_-3px_6px_#1b1b20] text-emerald-400 font-bold',
+    btnText: 'text-gray-300',
+    primaryColor: '#10b981'
+  },
+  neonCyber: {
+    name: 'Neon Cyberpunk (นีออนเกลส์)',
+    bg: 'bg-[#05050a]',
+    text: 'text-cyan-400',
+    textMuted: 'text-slate-500',
+    inset: 'shadow-[inset_4px_4px_10px_#010103,inset_-4px_-4px_10px_#11111e] border border-cyan-950/40',
+    outset: 'shadow-[4px_4px_10px_#010103,-4px_-4px_10px_#11111e] border border-cyan-500/10',
+    btnActive: 'shadow-[inset_2px_2px_5px_#010103,inset_-2px_-2px_5px_#11111e] text-pink-500 border border-pink-500/30',
+    btnText: 'text-cyan-500/80',
+    primaryColor: '#00f0ff'
+  },
+  creamSlight: {
+    name: 'Soft Light Cream (ครีมเกรดพรีเมียม)',
+    bg: 'bg-[#e5e9f0]',
+    text: 'text-slate-800',
+    textMuted: 'text-slate-500',
+    inset: 'shadow-[inset_4px_4px_8px_#c5cad4,inset_-4px_-4px_8px_#ffffff]',
+    outset: 'shadow-[5px_5px_10px_#c5cad4,-5px_-5px_10px_#ffffff]',
+    btnActive: 'shadow-[inset_3px_3px_6px_#c5cad4,inset_-3px_-3px_6px_#ffffff] text-indigo-600 font-bold',
+    btnText: 'text-slate-600',
+    primaryColor: '#4f46e5'
+  },
+  jadeForest: {
+    name: 'Forest Jade (หยกเขียว)',
+    bg: 'bg-[#eaf0ec]',
+    text: 'text-emerald-900',
+    textMuted: 'text-emerald-700/60',
+    inset: 'shadow-[inset_4px_4px_8px_#cbd1cc,inset_-4px_-4px_8px_#ffffff]',
+    outset: 'shadow-[5px_5px_10px_#cbd1cc,-5px_-5px_10px_#ffffff]',
+    btnActive: 'shadow-[inset_3px_3px_6px_#cbd1cc,inset_-3px_-3px_6px_#ffffff] text-emerald-600 font-bold',
+    btnText: 'text-emerald-800/80',
+    primaryColor: '#059669'
+  }
+};
+
+const CATEGORIES = {
+  all: 'ทุกกลุ่มวิชา',
+  gen_thai: '1.1 กลุ่มวิชาภาษาไทย',
+  gen_inter: '1.2 กลุ่มวิชาภาษาต่างประเทศ',
+  gen_sci: '1.3 กลุ่มวิชาวิทยาศาสตร์',
+  gen_math: '1.4 กลุ่มวิชาคณิตศาสตร์',
+  gen_social: '1.5 กลุ่มวิชาสังคมศาสตร์',
+  gen_human: '1.6 กลุ่มวิชามนุษยศาสตร์',
+  core: '2. กลุ่มวิชาแกน',
+  major_req: '3.1 กลุ่มวิชาชีพบังคับ',
+  major_elec: '3.2 กลุ่มวิชาชีพเลือก',
+  free: '4. หมวดเลือกเสรี'
+};
+
+const ALL_SEMESTERS = ['1/2567', '2/2567', '1/2568', '2/2568', '1/2569'];
+
+// ระบบการคิด GPAX ของมหาวิทยาลัยไทยส่วนใหญ่จะตัดทศนิยมหลักที่ 3 ลง ไม่ใช่การปัดขึ้น
+const formatGPA = (value) => {
+  if (isNaN(value) || value === 0) return '0.00';
+  return (Math.floor(value * 100) / 100).toFixed(2);
+};
+
+export default function App() {
+  const [subjects, setSubjects] = useState(INITIAL_SUBJECTS);
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [selectedSemester, setSelectedSemester] = useState('1/2569');
+  const [currentTheme, setCurrentTheme] = useState('luxuryNavy');
+  
+  const [formSubject, setFormSubject] = useState({
+    semester: '1/2569',
+    code: '',
+    name: '',
+    credits: 3,
+    grade: ' ',
+    category: 'core'
+  });
+
+  const themeStyle = COLOR_THEMES[currentTheme];
+
+  // นำเข้า Google Fonts (Inter & Sarabun) ลงเว็บบราวเซอร์
+  useEffect(() => {
+    const fontLink = document.createElement('link');
+    fontLink.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Sarabun:wght@300;400;500;600;700;800&display=swap';
+    fontLink.rel = 'stylesheet';
+    document.head.appendChild(fontLink);
+    return () => {
+      document.head.removeChild(fontLink);
     };
+  }, []);
 
-}
-    function renderSemesterSummary(){
+  const calculatedData = useMemo(() => {
+    let cumulativeGP = 0;
+    let cumulativeCA = 0;
+    let cumulativeCE = 0;
+    let cumulativeGPACredits = 0;
 
-    let html="";
+    const semesterBreakdown = {};
 
-    semesters.forEach(sem=>{
+    ALL_SEMESTERS.forEach(sem => {
+      const semSubjects = subjects.filter(sub => sub.semester === sem);
+      
+      let semCA = 0;
+      let semCE = 0;
+      let semGPACredits = 0;
+      let semGP = 0;
+      let hasF = false;
 
-        const data=calculateSemester(sem);
+      semSubjects.forEach(sub => {
+        const val = GRADE_VALUES[sub.grade];
+        const credits = Number(sub.credits);
 
-        html+=`
+        if (sub.grade === 'F') {
+          hasF = true;
+        }
 
-        <div class="card">
+        if (sub.grade !== ' ') {
+          semCA += credits;
 
-        <h3>${sem}</h3>
+          if (sub.grade !== 'F' && sub.grade !== 'W' && sub.grade !== 'I') {
+            semCE += credits;
+          }
 
-        <p>GPA : <b>${data.gpa}</b></p>
+          if (val !== null && sub.grade !== 'W' && sub.grade !== 'I' && sub.grade !== 'S') {
+            semGPACredits += credits;
+            semGP += (val * credits);
+          }
+        }
+      });
 
-        <p>หน่วยกิต : ${data.credits}</p>
+      const semGPA = semGPACredits > 0 ? (semGP / semGPACredits) : 0;
 
-        </div>
+      cumulativeCA += semCA;
+      cumulativeCE += semCE;
+      cumulativeGPACredits += semGPACredits;
+      cumulativeGP += semGP;
 
-        `;
+      const currentGPAX = cumulativeGPACredits > 0 ? (cumulativeGP / cumulativeGPACredits) : 0;
 
+      // วิทยทัณฑ์ตามเงื่อนไขคะแนนสะสมจริงในแต่ละช่วงเทอม
+      let statusLabel = 'ปกติ';
+      let statusColor = 'text-emerald-400';
+      const formattedCurrentGPAX = parseFloat(formatGPA(currentGPAX));
+
+      if (formattedCurrentGPAX > 0 && formattedCurrentGPAX < 1.75) {
+        statusLabel = 'วิทยทัณฑ์ < 1.75';
+        statusColor = 'text-rose-400 font-extrabold animate-pulse';
+      } else if (formattedCurrentGPAX >= 1.75 && formattedCurrentGPAX < 2.00) {
+        statusLabel = 'วิทยทัณฑ์ < 2.00';
+        statusColor = 'text-amber-400 font-bold';
+      }
+
+      semesterBreakdown[sem] = {
+        subjects: semSubjects,
+        ca: semCA,
+        ce: semCE,
+        gp: semGP,
+        gpa: formatGPA(semGPA),
+        cumCA: cumulativeCA,
+        cumCE: cumulativeCE,
+        cumCC: cumulativeGPACredits,
+        cumGP: cumulativeGP,
+        gpax: formatGPA(currentGPAX),
+        statusLabel,
+        statusColor,
+        hasF
+      };
     });
 
-    const target=document.getElementById("semesterSummary");
+    const latestSem = ALL_SEMESTERS[ALL_SEMESTERS.length - 1];
+    const overallGPAX = parseFloat(semesterBreakdown[latestSem]?.gpax || '0.00');
+    const overallCE = semesterBreakdown[latestSem]?.cumCE || 0;
 
-    if(target){
+    // คำนวณวิเคราะห์เกณฑ์เกียรตินิยม
+    let honorsResult = 'ไม่เข้าเกณฑ์เกียรตินิยม';
+    let honorsSubText = 'เกรดเฉลี่ยสะสมปัจจุบันไม่ถึงเกณฑ์ 3.25';
+    const totalFCount = subjects.filter(s => s.grade === 'F').length;
+    const totalWCount = subjects.filter(s => s.grade === 'W').length;
 
-        target.innerHTML=html;
-
+    if (totalFCount > 0) {
+      honorsSubText = 'ไม่ได้รับเกียรตินิยมเนื่องจากมีผลการเรียน F ในประวัติ';
+    } else if (overallGPAX >= 3.75) {
+      honorsResult = 'เกียรตินิยมอันดับ 1 🏆';
+      honorsSubText = `ว่าที่เกียรตินิยม (สะสมแล้ว ${overallCE} นก. ขาดอีก ${Math.max(0, 133-overallCE)} นก.)`;
+    } else if (overallGPAX >= 3.25) {
+      honorsResult = 'เกียรตินิยมอันดับ 2 🥈';
+      honorsSubText = `ว่าที่เกียรตินิยม (สะสมแล้ว ${overallCE} นก. ขาดอีก ${Math.max(0, 133-overallCE)} นก.)`;
     }
 
-}
-renderSemesterSummary();
-    <div class="card">
-
-<h2>ผลการเรียนรายภาคเรียน</h2>
-
-<div id="semesterSummary"></div>
-
-</div>
-const themes={
-
-dark:{
-bg:"#0f172a",
-card:"#1e293b",
-text:"#ffffff"
-},
-
-light:{
-bg:"#f1f5f9",
-card:"#ffffff",
-text:"#111827"
-},
-
-purple:{
-bg:"#312e81",
-card:"#4338ca",
-text:"#ffffff"
-}
-
-};
-
-let currentTheme="dark";
-
-function setTheme(name){
-
-currentTheme=name;
-
-const t=themes[name];
-
-document.body.style.background=t.bg;
-document.body.style.color=t.text;
-
-document.querySelectorAll(".card").forEach(card=>{
-
-card.style.background=t.card;
-
-});
-
-localStorage.setItem("theme",name);
-
-}
-
-function loadTheme(){
-
-const theme=localStorage.getItem("theme");
-
-if(theme){
-
-setTheme(theme);
-
-}
-
-}
-    <div class="card">
-
-<h3>Theme</h3>
-
-<button class="btn" onclick="setTheme('dark')">
-Dark
-</button>
-
-<button class="btn" onclick="setTheme('light')">
-Light
-</button>
-
-<button class="btn" onclick="setTheme('purple')">
-Purple
-</button>
-
-</div>
-<div id="bottomNav">
-
-<button onclick="showTab('dashboard')">
-Dashboard
-</button>
-
-<button onclick="showTab('semester')">
-Semester
-</button>
-
-<button onclick="showTab('subject')">
-Subjects
-</button>
-
-</div>
-#bottomNav{
-
-position:fixed;
-
-bottom:0;
-
-left:0;
-
-right:0;
-
-height:70px;
-
-display:flex;
-
-justify-content:space-around;
-
-align-items:center;
-
-background:#1e293b;
-
-}
-
-#bottomNav button{
-
-background:none;
-
-border:none;
-
-color:white;
-
-font-size:16px;
-
-cursor:pointer;
-
-}
-    function showTab(name){
-
-document.querySelectorAll(".tab").forEach(tab=>{
-
-tab.style.display="none";
-
-});
-
-document.getElementById(name).style.display="block";
-
-}
-    function updateProgress(){
-
-let total=0;
-
-subjects.forEach(s=>{
-
-if(s.grade!="F"){
-
-total+=s.credits;
-
-}
-
-});
-
-const percent=(total/133)*100;
-
-document.getElementById("progressBar").style.width=percent+"%";
-
-document.getElementById("creditText").innerHTML=
-
-`${total} / 133 หน่วยกิต`;
-
-}
-    updateProgress();
-    loadData();
-
-loadTheme();
-
-calculate();
-
-showTab("dashboard");
-    function renderStatistics(){
-
-let totalCredits=0;
-let passCredits=0;
-let failCredits=0;
-
-let gradeCount={
-"A":0,
-"B+":0,
-"B":0,
-"C+":0,
-"C":0,
-"D+":0,
-"D":0,
-"F":0
-};
-
-subjects.forEach(s=>{
-
-totalCredits+=s.credits;
-
-gradeCount[s.grade]++;
-
-if(s.grade=="F"){
-
-failCredits+=s.credits;
-
-}else{
-
-passCredits+=s.credits;
-
-}
-
-});
-
-const box=document.getElementById("statistics");
-
-if(!box)return;
-
-box.innerHTML=`
-
-<div class="card">
-
-<h3>สถิติผลการเรียน</h3>
-
-<p>ผ่านทั้งหมด : ${passCredits} หน่วยกิต</p>
-
-<p>ติด F : ${failCredits} หน่วยกิต</p>
-
-<p>จำนวนวิชา : ${subjects.length}</p>
-
-<hr>
-
-<p>A : ${gradeCount["A"]}</p>
-
-<p>B+ : ${gradeCount["B+"]}</p>
-
-<p>B : ${gradeCount["B"]}</p>
-
-<p>C+ : ${gradeCount["C+"]}</p>
-
-<p>C : ${gradeCount["C"]}</p>
-
-<p>D+ : ${gradeCount["D+"]}</p>
-
-<p>D : ${gradeCount["D"]}</p>
-
-<p>F : ${gradeCount["F"]}</p>
-
-</div>
-
-`;
-
-}
- renderStatistics();   
-    <div id="statistics"></div>
-    function targetCalculator(target){
-
-let credits=0;
-let points=0;
-
-subjects.forEach(s=>{
-
-credits+=s.credits;
-points+=GRADE_POINTS[s.grade]*s.credits;
-
-});
-
-const remain=133-credits;
-
-const need=((target*(credits+remain))-points)/remain;
-
-return Math.max(0,need).toFixed(2);
-
-}
-    <input
-id="search"
-placeholder="ค้นหารายวิชา"
-class="input"
-onkeyup="searchSubject()">
-function searchSubject(){
-
-const keyword=document
-.getElementById("search")
-.value
-.toLowerCase();
-
-const rows=document.querySelectorAll("#subjectTable tr");
-
-rows.forEach(r=>{
-
-const text=r.innerText.toLowerCase();
-
-r.style.display=text.includes(keyword)
-?"":"none";
-
-});
-
-}
-    function sortByGrade(){
-
-subjects.sort((a,b)=>{
-
-return GRADE_POINTS[b.grade]-GRADE_POINTS[a.grade];
-
-});
-
-calculate();
-
-}
-    <button
-class="btn"
-onclick="sortByGrade()">
-
-เรียงตามเกรด
-
-</button>
-function exportData(){
-
-    const dataStr = JSON.stringify(subjects, null, 2);
-    const blob = new Blob([dataStr], {type: 'application/json'});
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'subjects_backup.json';
-    a.click();
-
-    URL.revokeObjectURL(url);
-}
-
-function importData(event){
-
-    const file = event.target.files[0];
-    if(!file) return;
-
-    const reader = new FileReader();
-
-    reader.onload = function(e){
-        try{
-            subjects = JSON.parse(e.target.result);
-            calculate();
-            saveData();
-            alert('นำเข้าข้อมูลสำเร็จ');
-        }catch(err){
-            alert('ไฟล์ไม่ถูกต้อง');
-        }
+    // คำนวณจำแนกหน่วยกิตหมวดหมู่ย่อย
+    const categoryProgress = {};
+    Object.keys(CATEGORIES).forEach(cat => { categoryProgress[cat] = 0; });
+    subjects.forEach(sub => {
+      if (sub.grade !== ' ' && sub.grade !== 'F' && sub.grade !== 'W' && sub.grade !== 'I') {
+        categoryProgress[sub.category] = (categoryProgress[sub.category] || 0) + Number(sub.credits);
+      }
+    });
+
+    return {
+      semesterBreakdown,
+      overallGPAX,
+      overallCE,
+      honorsResult,
+      honorsSubText,
+      categoryProgress,
+      totalFCount,
+      totalWCount
     };
-
-    reader.readAsText(file);
-}
-    <button
-class="btn"
-onclick="exportData()">
-
-Export JSON
-
-</button>
-<input
-type="file"
-id="importFile"
-accept=".json"
-onchange="importData(event)">
-function importData(event){
-
-const file=
-event.target.files[0];
-
-if(!file)return;
-
-const reader=
-new FileReader();
-
-reader.onload=function(e){
-
-try{
-
-subjects=
-JSON.parse(e.target.result);
-
-calculate();
-
-saveData();
-
-alert("นำเข้าข้อมูลสำเร็จ");
-
-}catch{
-
-alert("ไฟล์ไม่ถูกต้อง");
-
-}
-
-};
-
-reader.readAsText(file);
-
-}
-    function printReport(){
-
-let report="";
-
-report+="DDT GRADE REPORT\n\n";
-
-subjects.forEach(s=>{
-
-report+=
-`${s.code}
-${s.name}
-(${s.credits})
-Grade:${s.grade}\n`;
-
-});
-
-report+=`\nGPAX:
-${document.getElementById("gpax").innerText}`;
-
-const win=
-window.open();
-
-win.document.write(
-
-`<pre>${report}</pre>`
-
-);
-
-win.print();
-
-}
-    <button
-class="btn"
-onclick="printReport()">
-
-Print Report
-
-</button>
-function clearAllSubjects(){
-
-if(
-!confirm(
-"ลบรายวิชาทั้งหมด?"
-)
-)return;
-
-subjects=[];
-
-calculate();
-
-saveData();
-
-}
-    <button
-class="btn"
-style="
-background:#dc2626;
-color:white;
-"
-onclick="clearAllSubjects()">
-
-ลบทั้งหมด
-
-</button>
-function gradeSummary(){
-
-const summary={
-
-A:0,
-"B+":0,
-B:0,
-"C+":0,
-C:0,
-"D+":0,
-D:0,
-F:0
-
-};
-
-subjects.forEach(s=>{
-
-summary[s.grade]++;
-
-});
-
-return summary;
-
-}
-    const g=gradeSummary();
-
-console.log(g.A);
-console.log(g["B+"]);
-console.log(g.F);
-    function riskySubjects(){
-
-return subjects.filter(s=>{
-
-return (
-s.grade==="D" ||
-s.grade==="D+"||
-s.grade==="F"
-);
-
-});
-
-}
-    function exportJSON(){
-
-const data=JSON.stringify(subjects,null,2);
-
-const blob=new Blob([data],{
-type:"application/json"
-});
-
-const url=URL.createObjectURL(blob);
-
-const a=document.createElement("a");
-
-a.href=url;
-
-a.download="subjects.json";
-
-a.click();
-
-URL.revokeObjectURL(url);
-
-}
-    <button class="btn" onclick="exportJSON()">
-Export JSON
-</button>
-<input
-type="file"
-id="importFile"
-accept=".json"
-onchange="importJSON(event)">
-function importJSON(event){
-
-const file=event.target.files[0];
-
-if(!file)return;
-
-const reader=new FileReader();
-
-reader.onload=function(e){
-
-subjects=JSON.parse(e.target.result);
-
-calculate();
-
-};
-
-reader.readAsText(file);
-
-}
-    function report(){
-
-let text="";
-
-subjects.forEach(s=>{
-
-text+=`${s.code} ${s.name} ${s.grade}\n`;
-
-});
-
-text+=`\nGPAX : ${document.getElementById("gpax").innerText}`;
-
-alert(text);
-
-}
-    <button class="btn"
-onclick="report()">
-
-รายงาน
-
-</button>
-function downloadReport(){
-
-let text="DDT GRADE REPORT\n\n";
-
-subjects.forEach(s=>{
-
-text+=`${s.code} ${s.name} ${s.grade}\n`;
-
-});
-
-text+=`\nGPAX : ${document.getElementById("gpax").innerText}`;
-
-const blob=new Blob([text],{
-type:"text/plain"
-});
-
-const url=URL.createObjectURL(blob);
-
-const a=document.createElement("a");
-
-a.href=url;
-
-a.download="report.txt";
-
-a.click();
-
-URL.revokeObjectURL(url);
-
-}
-    <button class="btn"
-onclick="downloadReport()">
-
-ดาวน์โหลดรายงาน
-
-</button>
-</div>
-
-<div class="card">
-
-<h3>หน่วยกิตสะสม</h3>
-
-<div class="progress">
-
-<div
-class="progress-bar"
-id="progressBar">
-
-</div>
-
-</div>
-
-<div id="creditText">
-0 / 133
-</div>
-
-</div>
-.dashboardCard{
-
-text-align:center;
-
-padding:25px;
-
-border-radius:25px;
-
-background:#1e293b;
-
-margin-bottom:20px;
-
-}
-
-.cardTitle{
-
-font-size:18px;
-
-font-weight:bold;
-
-margin-bottom:15px;
-
-}
-
-.gpaxNumber{
-
-font-size:65px;
-
-font-weight:900;
-
-color:#60a5fa;
-
-}
-
-.status{
-
-margin-top:15px;
-
-font-size:18px;
-
-font-weight:bold;
-
-color:#22c55e;
-
-}
-    document.getElementById("status").innerHTML=status;
-    const statusBox=document.getElementById("status");
-
-statusBox.innerHTML=status;
-
-if(gpax<1.75){
-
-statusBox.style.color="#ef4444";
-
-}
-else if(gpax<2){
-
-statusBox.style.color="#f59e0b";
-
-}
-else{
-
-statusBox.style.color="#22c55e";
-
-}
-    table.innerHTML+=`
-
-<tr>
-
-<td>
-
-<b>${s.code}</b>
-
-<br>
-
-<small>${s.name}</small>
-
-</td>
-
-<td>
-
-${s.credits}
-
-</td>
-
-<td>
-
-<select onchange="changeGrade(${index},this.value)">
-
-${Object.keys(GRADE_POINTS).map(g=>
-
-`<option value="${g}" ${g==s.grade?"selected":""}>${g}</option>`
-
-).join("")}
-
-</select>
-
-</td>
-
-<td>
-
-<button onclick="deleteSubject(${index})">
-
-🗑
-
-</button>
-
-</td>
-
-</tr>
-
-`;
-    .card{
-
-transition:.25s;
-
-}
-
-.card:hover{
-
-transform:translateY(-3px);
-
-box-shadow:0 15px 40px rgba(0,0,0,.25);
-
-}
-
-button{
-
-transition:.2s;
-
-cursor:pointer;
-
-}
-
-button:hover{
-
-transform:scale(1.05);
-
-}
-
-button:active{
-
-transform:scale(.95);
-
-}
-    @media(max-width:480px){
-
-.card{
-
-padding:15px;
-
-}
-
-.gpaxNumber{
-
-font-size:48px;
-
-}
-
-table{
-
-font-size:12px;
-
-}
-
-button{
-
-font-size:12px;
-
-padding:8px;
-
-}
-
-}
+  }, [subjects]);
+
+  const setQuickGrade = (id, nextGrade) => {
+    setSubjects(prev => prev.map(s => s.id === id ? { ...s, grade: nextGrade } : s));
+  };
+
+  const removeSubject = (id) => {
+    setSubjects(prev => prev.filter(s => s.id !== id));
+  };
+
+  const addSubjectToPlan = (e) => {
+    e.preventDefault();
+    if (!formSubject.code || !formSubject.name) return;
+    const id = 'custom_' + Date.now().toString();
+    setSubjects(prev => [...prev, { ...formSubject, id, semester: selectedSemester }]);
+    setFormSubject({
+      semester: selectedSemester,
+      code: '',
+      name: '',
+      credits: 3,
+      grade: ' ',
+      category: 'core'
+    });
+  };
+
+  const simulationInsight = useMemo(() => {
+    const uncalculatedSub = subjects.filter(s => s.semester === '1/2569' && s.grade === ' ');
+    const calculatedSub = subjects.filter(s => !(s.semester === '1/2569' && s.grade === ' '));
     
-<div id="bottomNavigation">
-
-    <button onclick="showTab('dashboard')">
-        🏠
-        <span>Dashboard</span>
-    </button>
-
-    <button onclick="showTab('subjects')">
-        📚
-        <span>Subjects</span>
-    </button>
-
-    <button onclick="showTab('semester')">
-        📅
-        <span>Semester</span>
-    </button>
-
-    <button onclick="showTab('setting')">
-        ⚙️
-        <span>Setting</span>
-    </button>
-
-</div>
-#bottomNavigation{
-
-position:fixed;
-
-left:20px;
-
-right:20px;
-
-bottom:20px;
-
-height:70px;
-
-border-radius:35px;
-
-background:#1e293b;
-
-display:flex;
-
-justify-content:space-around;
-
-align-items:center;
-
-box-shadow:0 10px 40px rgba(0,0,0,.4);
-
-z-index:999;
-
-}
-
-#bottomNavigation button{
-
-background:none;
-
-border:none;
-
-color:white;
-
-display:flex;
-
-flex-direction:column;
-
-align-items:center;
-
-font-size:13px;
-
-gap:5px;
-
-}
-
-#bottomNavigation button span{
-
-font-size:11px;
-
-}
-    function showTab(id){
-
-document.querySelectorAll(".page").forEach(page=>{
-
-page.style.display="none";
-
-});
-
-const page=document.getElementById(id);
-
-if(page){
-
-page.style.display="block";
-
-}
-
-}
-    <div id="dashboard" class="page">
-
-<!-- Dashboard -->
-
-</div>
-
-<div id="subjects" class="page" style="display:none">
-
-<!-- Subject -->
-
-</div>
-
-<div id="semester" class="page" style="display:none">
-
-<!-- Semester -->
-
-</div>
-
-<div id="setting" class="page" style="display:none">
-
-<!-- Setting -->
-
-</div>
-body{
-
-transition:.35s;
-
-}
-
-.card{
-
-transition:.35s;
-
-}
-
-button{
-
-transition:.25s;
-
-}
-
-.progress-bar{
-
-transition:width .4s;
-
-}
-    function toggleDark(){
-
-document.body.classList.toggle("light");
-
-}
-    .light{
-
-background:#f8fafc;
-
-color:#111827;
-
-}
-
-.light .card{
-
-background:white;
-
-color:#111827;
-
-}
-
-.light #bottomNavigation{
-
-background:white;
-
-}
-
-.light button{
-
-color:#111827;
-
-}
-    <button
-class="btn"
-onclick="toggleDark()">
-
-🌙 Dark / ☀ Light
-
-</button>
-const semesterData = [
-    "1/2567",
-    "2/2567",
-    "1/2568",
-    "2/2568",
-    "1/2569"
-];
-
-function semesterReport(){
-
-    let html="";
-
-    semesterData.forEach(semester=>{
-
-        const list=subjects.filter(s=>s.semester===semester);
-
-        let credit=0;
-        let point=0;
-
-        list.forEach(subject=>{
-
-            credit+=subject.credits;
-
-            point+=GRADE_POINTS[subject.grade]*subject.credits;
-
-        });
-
-        let gpa="0.00";
-
-        if(credit>0){
-
-            gpa=(point/credit).toFixed(2);
-
-        }
-
-        html+=`
-
-        <div class="semesterCard">
-
-            <h3>${semester}</h3>
-
-            <p>GPA ${gpa}</p>
-
-            <p>${credit} หน่วยกิต</p>
+    let prevGP = 0;
+    let prevCredits = 0;
+    calculatedSub.forEach(s => {
+      const v = GRADE_VALUES[s.grade];
+      if (v !== null && s.grade !== 'S' && s.grade !== 'W') {
+        prevGP += (v * Number(s.credits));
+        prevCredits += Number(s.credits);
+      }
+    });
+
+    const activeCredits = uncalculatedSub.reduce((acc, curr) => acc + Number(curr.credits), 0);
+    const targetPointsNeeded = (2.00 * (prevCredits + activeCredits)) - prevGP;
+    const requiredTermGPA = activeCredits > 0 ? (targetPointsNeeded / activeCredits) : 0;
+
+    return {
+      activeCredits,
+      requiredTermGPA: requiredTermGPA > 0 ? requiredTermGPA.toFixed(2) : '0.00',
+      isImpossible: requiredTermGPA > 4.0,
+      isAlreadySafe: (prevGP / prevCredits) >= 2.00,
+    };
+  }, [subjects]);
+
+  return (
+    <div className={`min-h-screen ${themeStyle.bg} ${themeStyle.text} flex flex-col items-center justify-start py-6 px-4 font-sans transition-all duration-300`} style={{ fontFamily: 'Sarabun, Inter, sans-serif' }}>
+      
+      {/* SAMSUNG S26 FRAME */}
+      <div className="w-full max-w-[412px] min-h-[890px] rounded-[50px] border-[10px] border-[#222] bg-[#0c0d12] shadow-2xl relative flex flex-col overflow-hidden">
+        
+        {/* Top Status Bar */}
+        <div className="h-10 bg-black/90 w-full px-6 flex justify-between items-center text-[11px] text-gray-400 z-50">
+          <div className="flex items-center gap-1.5 font-bold">
+            <span>07:32</span> <span className="text-[9px] opacity-70">AM</span>
+          </div>
+          <div className="w-4 h-4 bg-black rounded-full border border-gray-800 -mt-1 shadow-inner" />
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] tracking-widest font-black text-indigo-400">5G</span>
+            <Wifi className="w-3.5 h-3.5" />
+            <div className="flex items-center gap-1">
+              <span>78%</span>
+              <Battery className="w-4 h-4 text-emerald-400 rotate-90" />
+            </div>
+          </div>
+        </div>
+
+        {/* Header Title Bar */}
+        <div className="px-5 pt-4 pb-3 flex flex-col gap-3">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <div className={`p-2.5 rounded-2xl ${themeStyle.outset} flex items-center justify-center`}>
+                <GraduationCap className="w-5 h-5 text-indigo-400" />
+              </div>
+              <div>
+                <h1 className="text-xs font-black tracking-tight uppercase">DDT Grade Planner</h1>
+                <p className="text-[9px] opacity-60">Digital Design & Technology</p>
+              </div>
+            </div>
+            <button 
+              onClick={() => { if(window.confirm('ต้องการรีเซ็ตค่าเริ่มต้นของเกรดตามภาพ Transcript ทั้งหมด?')) setSubjects(INITIAL_SUBJECTS); }}
+              className={`p-2 rounded-xl ${themeStyle.outset} text-gray-400 hover:text-red-400 transition-colors`}
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          {/* Theme Selection */}
+          <div className={`p-2 rounded-2xl ${themeStyle.inset} flex justify-between items-center`}>
+            <span className="text-[10px] font-extrabold pl-1 opacity-70">ธีมเครื่อง S26:</span>
+            <div className="flex gap-2">
+              {Object.keys(COLOR_THEMES).map((key) => (
+                <button
+                  key={key}
+                  onClick={() => setCurrentTheme(key)}
+                  className={`w-5 h-5 rounded-full border-2 transition-transform ${currentTheme === key ? 'border-indigo-400 scale-125' : 'border-transparent opacity-50'}`}
+                  style={{ backgroundColor: COLOR_THEMES[key].primaryColor }}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Viewport content */}
+        <div className="flex-1 overflow-y-auto px-4 pb-24 space-y-4 overflow-x-hidden" style={{ maxHeight: '710px' }}>
+          
+          {/* TAB 1: Dashboard View */}
+          {activeTab === 'dashboard' && (
+            <div className="space-y-4 animate-fadeIn">
+              
+              {/* GPAX Plate with customized Truncation Logic */}
+              <div className={`p-5 rounded-[30px] ${themeStyle.outset} text-center space-y-3 relative`}>
+                <p className="text-[10px] uppercase tracking-wider font-extrabold opacity-60">ผลการเรียนเฉลี่ยสะสม (GPAX)</p>
+                <div className="text-5xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-teal-400">
+                  {calculatedData.overallGPAX.toFixed(2)}
+                </div>
+                <div className={`inline-flex px-4 py-1.5 rounded-full text-xs font-black ${calculatedData.overallGPAX >= 2.0 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400 animate-pulse'}`}>
+                  สถานะวิชาการ: {calculatedData.overallGPAX >= 2.0 ? 'ปกติ' : `วิทยทัณฑ์ < 2.00 ⚠️`}
+                </div>
+                <div className="grid grid-cols-2 gap-3 pt-2 text-[11px]">
+                  <div className={`p-2.5 rounded-2xl ${themeStyle.inset}`}>
+                    <span className="block opacity-60 text-[9px] mb-0.5">ผ่านแล้ว (CE)</span>
+                    <strong>{calculatedData.overallCE} / 133 นก.</strong>
+                  </div>
+                  <div className={`p-2.5 rounded-2xl ${themeStyle.inset}`}>
+                    <span className="block opacity-60 text-[9px] mb-0.5">ติด F / W ในประวัติ</span>
+                    <strong className="text-amber-500">F ({calculatedData.totalFCount}) | W ({calculatedData.totalWCount})</strong>
+                  </div>
+                </div>
+              </div>
+
+              {/* Probation Target helper */}
+              <div className={`p-4 rounded-3xl ${themeStyle.outset} space-y-3`}>
+                <div className="flex items-center gap-1.5 border-b border-white/5 pb-2">
+                  <AlertTriangle className="w-4 h-4 text-amber-400" />
+                  <h3 className="text-xs font-black">วิเคราะห์เป้าหมายหลุดวิทยทัณฑ์</h3>
+                </div>
+                {calculatedData.overallGPAX >= 2.00 ? (
+                  <div className="p-3 rounded-2xl bg-emerald-500/10 text-emerald-300 text-xs flex gap-2">
+                    <CheckCircle className="w-4 h-4 text-emerald-400" />
+                    <p>ยินดีด้วย เกรดรวมปลอดภัยพ้นขีดอันตรายแล้ว!</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2 text-xs">
+                    <p className="opacity-85">เทอม 1/2569 มีวิชาว่างรอผลการเรียนอยู่ <span className="text-indigo-400 font-bold">{simulationInsight.activeCredits} หน่วยกิต</span></p>
+                    <div className={`p-3 rounded-2xl ${themeStyle.inset} space-y-1`}>
+                      <div className="flex justify-between items-center">
+                        <span>เกรดเฉลี่ยเทอมนี้ที่ต้องทำได้ขั้นต่ำ:</span>
+                        <strong className="text-sm text-amber-400">{simulationInsight.isImpossible ? 'ไม่เพียงพอ' : simulationInsight.requiredTermGPA}</strong>
+                      </div>
+                      {!simulationInsight.isImpossible && (
+                        <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden mt-1">
+                          <div className="h-full bg-amber-400" style={{ width: `${Math.min(100, (parseFloat(simulationInsight.requiredTermGPA)/4)*100)}%` }} />
+                        </div>
+                      )}
+                      {simulationInsight.isImpossible && <p className="text-[10px] text-red-400">⚠️ ต้องลงทะเบียนเรียนเพิ่มหรือลงรีเกรดเพิ่มเพื่อดึงฐานคะแนน</p>}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Honors reward panel */}
+              <div className={`p-4 rounded-3xl ${themeStyle.outset} space-y-2`}>
+                <div className="flex items-center gap-1.5 border-b border-white/5 pb-2">
+                  <Award className="w-4 h-4 text-indigo-400" />
+                  <h3 className="text-xs font-black">การพิจารณาเกียรตินิยม</h3>
+                </div>
+                <div className={`p-3 rounded-2xl ${themeStyle.inset} text-center`}>
+                  <p className="text-sm font-extrabold text-amber-400">{calculatedData.honorsResult}</p>
+                  <p className="text-[10px] opacity-70 mt-0.5">{calculatedData.honorsSubText}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 2: Semester breakdown & grading simulation */}
+          {activeTab === 'semesters' && (
+            <div className="space-y-4 animate-fadeIn">
+              
+              {/* Semester Switcher */}
+              <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+                {ALL_SEMESTERS.map(sem => (
+                  <button
+                    key={sem}
+                    onClick={() => setSelectedSemester(sem)}
+                    className={`px-3 py-2 rounded-xl text-[11px] font-extrabold flex-shrink-0 transition-all ${selectedSemester === sem ? themeStyle.btnActive : `opacity-60 ${themeStyle.outset}`}`}
+                  >
+                    {sem === '1/2569' ? '1/2569 (จำลองเกรด)' : sem}
+                  </button>
+                ))}
+              </div>
+
+              {/* Selected Term statistics summary */}
+              {calculatedData.semesterBreakdown[selectedSemester] && (
+                <div className={`p-4 rounded-3xl ${themeStyle.outset} space-y-3`}>
+                  <div className="flex justify-between items-center border-b border-white/5 pb-1.5">
+                    <span className="text-xs font-bold text-indigo-400">ผลสรุปภาคเรียน {selectedSemester}</span>
+                    <span className={`text-[10px] font-black ${calculatedData.semesterBreakdown[selectedSemester].statusColor}`}>
+                      {calculatedData.semesterBreakdown[selectedSemester].statusLabel}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-4 gap-2 text-center text-[10px]">
+                    <div className={`p-2 rounded-xl ${themeStyle.inset}`}>
+                      <span className="block opacity-60">GPA เทอม</span>
+                      <strong className="text-indigo-300 text-xs">{calculatedData.semesterBreakdown[selectedSemester].gpa}</strong>
+                    </div>
+                    <div className={`p-2 rounded-xl ${themeStyle.inset}`}>
+                      <span className="block opacity-60">GPAX สะสม</span>
+                      <strong className="text-purple-300 text-xs">{calculatedData.semesterBreakdown[selectedSemester].gpax}</strong>
+                    </div>
+                    <div className={`p-2 rounded-xl ${themeStyle.inset}`}>
+                      <span className="block opacity-60">ลงทะเบียน</span>
+                      <strong className="text-xs">{calculatedData.semesterBreakdown[selectedSemester].ca} นก.</strong>
+                    </div>
+                    <div className={`p-2 rounded-xl ${themeStyle.inset}`}>
+                      <span className="block opacity-60">สะสมรวม</span>
+                      <strong className="text-xs">{calculatedData.semesterBreakdown[selectedSemester].cumCE} นก.</strong>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Subject lists with dropdown grade updates */}
+              <div className={`p-4 rounded-3xl ${themeStyle.outset} space-y-3`}>
+                <h3 className="text-xs font-black">วิชาเรียนในเทอมนี้</h3>
+                <div className="space-y-3 max-h-[250px] overflow-y-auto pr-1">
+                  {subjects.filter(sub => sub.semester === selectedSemester).map(sub => (
+                    <div key={sub.id} className={`p-3 rounded-2xl ${themeStyle.inset} flex justify-between items-center gap-2`}>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] font-black text-indigo-400">{sub.code}</span>
+                          <span className="text-[9px] opacity-50">({sub.credits} นก.)</span>
+                        </div>
+                        <p className="text-xs font-bold truncate">{sub.name}</p>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <select
+                          value={sub.grade}
+                          onChange={(e) => setQuickGrade(sub.id, e.target.value)}
+                          className="bg-slate-800 text-slate-200 border border-slate-700 rounded-lg text-xs p-1 font-bold outline-none"
+                        >
+                          <option value=" "> </option>
+                          {Object.keys(GRADE_VALUES).filter(k => k !== ' ').map(g => (
+                            <option key={g} value={g}>{g}</option>
+                          ))}
+                        </select>
+                        {sub.id.startsWith('custom_') && (
+                          <button onClick={() => removeSubject(sub.id)} className="text-red-400 hover:text-red-500">
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Dynamic addition form */}
+              <form onSubmit={addSubjectToPlan} className={`p-4 rounded-3xl ${themeStyle.outset} space-y-3`}>
+                <h4 className="text-xs font-black flex items-center gap-1">
+                  <Plus className="w-3.5 h-3.5 text-emerald-400" /> ทดลองเพิ่มวิชาลงทะเบียนเพิ่ม
+                </h4>
+                <div className="grid grid-cols-2 gap-2">
+                  <input type="text" placeholder="รหัสวิชา" required value={formSubject.code}
+                    onChange={(e) => setFormSubject({...formSubject, code: e.target.value.toUpperCase()})}
+                    className={`p-2 rounded-xl text-xs ${themeStyle.inset} bg-transparent border-none outline-none text-slate-100`} />
+                  <input type="text" placeholder="ชื่อวิชา" required value={formSubject.name}
+                    onChange={(e) => setFormSubject({...formSubject, name: e.target.value})}
+                    className={`p-2 rounded-xl text-xs ${themeStyle.inset} bg-transparent border-none outline-none text-slate-100`} />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <select value={formSubject.credits} onChange={(e) => setFormSubject({...formSubject, credits: Number(e.target.value)})}
+                    className={`p-2 rounded-xl text-xs ${themeStyle.inset} bg-slate-800 text-slate-100`}>
+                    <option value="1">1 นก.</option><option value="2">2 นก.</option><option value="3">3 นก.</option><option value="4">4 นก.</option>
+                  </select>
+                  <select value={formSubject.category} onChange={(e) => setFormSubject({...formSubject, category: e.target.value})}
+                    className={`p-2 rounded-xl text-xs ${themeStyle.inset} bg-slate-800 text-slate-100`}>
+                    {Object.entries(CATEGORIES).filter(([k]) => k !== 'all').map(([key, label]) => (
+                      <option key={key} value={key}>{label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex gap-2">
+                  <select value={formSubject.grade} onChange={(e) => setFormSubject({...formSubject, grade: e.target.value})}
+                    className={`p-2 rounded-xl text-xs ${themeStyle.inset} bg-slate-800 text-slate-100 flex-1`}>
+                    <option value=" ">ยังไม่ระบุเกรด</option>
+                    {Object.keys(GRADE_VALUES).filter(k => k !== ' ').map(g => (
+                      <option key={g} value={g}>เกรดหวังผล: {g}</option>
+                    ))}
+                  </select>
+                  <button type="submit" className="px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-xl text-xs font-bold flex items-center gap-1">
+                    <Save className="w-3.5 h-3.5" /> บันทึก
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* TAB 3: Curriculum progresses */}
+          {activeTab === 'curriculum' && (
+            <div className="space-y-4 animate-fadeIn">
+              <div className={`p-4 rounded-3xl ${themeStyle.outset} space-y-3`}>
+                <div className="flex items-center gap-1.5 border-b border-white/5 pb-2">
+                  <PieChart className="w-4 h-4 text-teal-400" />
+                  <h3 className="text-xs font-black">ความคืบหน้าของหน่วยกิตแยกกลุ่มวิชา</h3>
+                </div>
+                <div className="space-y-3 max-h-[460px] overflow-y-auto pr-1 text-[11px]">
+                  {Object.entries(CATEGORIES).filter(([k]) => k !== 'all').map(([key, label]) => {
+                    const earned = calculatedData.categoryProgress[key] || 0;
+                    let required = 30;
+                    if (key.startsWith('gen_')) required = 3; 
+                    if (key === 'gen_inter') required = 6;
+                    if (key === 'gen_thai') required = 4;
+                    if (key === 'core') required = 27;
+                    if (key === 'major_req') required = 45;
+                    if (key === 'free') required = 6;
+
+                    const pct = Math.min((earned / required) * 100, 100);
+
+                    return (
+                      <div key={key} className={`p-3 rounded-2xl ${themeStyle.inset} space-y-1.5`}>
+                        <div className="flex justify-between items-center">
+                          <span className="font-bold opacity-80 truncate max-w-[200px]">{label}</span>
+                          <span className="font-black text-indigo-400">{earned} / {required} นก.</span>
+                        </div>
+                        <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                          <div className="h-full bg-gradient-to-r from-teal-400 to-indigo-500" style={{ width: `${pct}%` }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
 
         </div>
 
-        `;
+        {/* Bottom Tab Bar navigation */}
+        <div className="absolute bottom-0 left-0 right-0 h-20 bg-black/90 backdrop-blur-md border-t border-white/5 px-6 flex justify-between items-center z-50">
+          <button onClick={() => setActiveTab('dashboard')} className={`flex flex-col items-center gap-1 ${activeTab === 'dashboard' ? 'text-indigo-400 font-extrabold' : 'text-gray-500'}`}>
+            <TrendingUp className="w-5 h-5" /> <span className="text-[9px]">หน้าหลัก</span>
+          </button>
+          <button onClick={() => setActiveTab('semesters')} className={`flex flex-col items-center gap-1 ${activeTab === 'semesters' ? 'text-indigo-400 font-extrabold' : 'text-gray-500'}`}>
+            <Calendar className="w-5 h-5" /> <span className="text-[9px]">แผนการศึกษา</span>
+          </button>
+          <button onClick={() => setActiveTab('curriculum')} className={`flex flex-col items-center gap-1 ${activeTab === 'curriculum' ? 'text-indigo-400 font-extrabold' : 'text-gray-500'}`}>
+            <BookOpen className="w-5 h-5" /> <span className="text-[9px]">หมวดวิชา</span>
+          </button>
+        </div>
 
-    });
-
-    document.getElementById("semesterReport").innerHTML=html;
-
+      </div>
+    </div>
+  );
 }
-    <div class="card">
-
-<h2>ผลการเรียนรายเทอม</h2>
-
-<div id="semesterReport"></div>
-
-</div>
-.semesterCard{
-
-padding:15px;
-
-margin:10px 0;
-
-border-radius:15px;
-
-background:#334155;
-
-}
-    semesterReport();
-    function categoryProgress(){
-
-const category={
-
-core:0,
-
-major:0,
-
-general:0,
-
-free:0
-
-};
-
-subjects.forEach(subject=>{
-
-if(subject.category=="core"){
-
-category.core+=subject.credits;
-
-}
-
-if(subject.category=="major_req"){
-
-category.major+=subject.credits;
-
-}
-
-if(subject.category.startsWith("gen")){
-
-category.general+=subject.credits;
-
-}
-
-if(subject.category=="free"){
-
-category.free+=subject.credits;
-
-}
-
-});
-
-document.getElementById("coreCredit").innerHTML=category.core;
-
-document.getElementById("majorCredit").innerHTML=category.major;
-
-document.getElementById("generalCredit").innerHTML=category.general;
-
-document.getElementById("freeCredit").innerHTML=category.free;
-
-}
-    <div class="card">
-
-<h2>โครงสร้างหลักสูตร</h2>
-
-<p>ศึกษาทั่วไป : <span id="generalCredit">0</span></p>
-
-<p>วิชาแกน : <span id="coreCredit">0</span></p>
-
-<p>วิชาชีพ : <span id="majorCredit">0</span></p>
-
-<p>เสรี : <span id="freeCredit">0</span></p>
-
-</div>
-
