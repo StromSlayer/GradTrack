@@ -1,1 +1,30 @@
+```react
+import React, { useState, useEffect, useMemo } from 'react';
+import { 
+  BookOpen, 
+  Award, 
+  Plus, 
+  Trash2, 
+  RefreshCw, 
+  CheckCircle, 
+  AlertCircle, 
+  Info,
+  GraduationCap,
+  Sparkles,
+  PieChart,
+  ListFilter,
+  TrendingUp,
+  Calendar,
+  Save,
+  ChevronDown,
+  Edit2
+} from 'lucide-react';
 
+// ข้อมูลรายวิชาจริงจากสกรีนช็อต 5 ภาคการศึกษา
+const INITIAL_SUBJECTS = [
+  // --- ภาคการศึกษาที่ 1/2567 ---
+  { id: 's1_1', semester: '1/2567', code: 'ART101', name: 'สุนทรียศาสตร์ ศิลปะและการออกแบบ', credits: 3, grade: 'D+', category: 'gen_human' },
+  { id: 's1_2', semester: '1/2567', code: 'DES101', name: 'องค์ประกอบศิลป์และทฤษฎีสีเพื่อการออกแบบ', credits: 3, grade: 'D', category: 'core' },
+  { id: 's1_3', semester: '1/2567', code: 'DES102', name: 'การวาดภาพเพื่อการออกแบบ', credits: 3, grade: 'D', category: 'core' },
+  { id: 's1_4', semester: '1/2567', code: 'DIG101', name: 'คอมพิวเตอร์เพื่องานออกแบบและตกแต่งภาพ', credits: 3, grade: 'D+', category: 'major_req' },
+  { id: 's1_
