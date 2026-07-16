@@ -3,880 +3,829 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DDT Grade Simulator</title>
-
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&family=Sarabun:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-
+    <title>DDT Grade Simulator S26</title>
+    <!-- นำเข้าฟอนต์ตามสเปก: Inter สำหรับภาษาอังกฤษ และ Sarabun สำหรับภาษาไทย -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- นำเข้า Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- นำเข้า React และ Babel สำหรับการประมวลผลบนบราวเซอร์ของลูกค้าทันทีเมื่อเปิด GitHub Pages -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <style>
-        body{
-            margin:0;
-            background:#0f172a;
-            color:white;
-            font-family:'Sarabun',sans-serif;
+        body {
+            font-family: 'Sarabun', 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        /* ซ่อน Scrollbar ของเบราว์เซอร์เพื่อความสวยงามสไตล์แอปมือถือ */
+        ::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
         }
 
-        .card{
-            background:#1e293b;
-            border-radius:25px;
-            padding:18px;
-            margin-bottom:18px;
+        /* --- Neumorphic Custom Styles --- */
+        /* Dark Navy Theme Neumorphism */
+        .navy-outset {
+            box-shadow: 6px 6px 12px #080c16, -6px -6px 12px #16223e;
+        }
+        .navy-inset {
+            box-shadow: inset 4px 4px 8px #080c16, inset -4px -4px 8px #16223e;
         }
 
-        .btn{
-            padding:10px 18px;
-            border:none;
-            border-radius:15px;
-            cursor:pointer;
-            font-weight:bold;
+        /* Obsidian Dark Neumorphism */
+        .obsidian-outset {
+            box-shadow: 6px 6px 12px #09090b, -6px -6px 12px #1b1b20;
+        }
+        .obsidian-inset {
+            box-shadow: inset 4px 4px 8px #09090b, inset -4px -4px 8px #1b1b20;
         }
 
-        .btn-primary{
-            background:#2563eb;
-            color:white;
+        /* Cyberpunk Neon Glow */
+        .cyber-outset {
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.15);
+            border: 1px solid rgba(0, 240, 255, 0.2);
+        }
+        .cyber-inset {
+            box-shadow: inset 0 0 8px rgba(0, 240, 255, 0.1);
+            border: 1px solid rgba(0, 240, 255, 0.1);
         }
 
-        .input{
-            width:100%;
-            padding:10px;
-            border-radius:10px;
-            border:none;
-            margin-top:5px;
-            margin-bottom:10px;
-            background:#334155;
-            color:white;
+        /* Soft Cream Light Neumorphism */
+        .cream-outset {
+            box-shadow: 6px 6px 12px #c5cad4, -6px -6px 12px #ffffff;
+        }
+        .cream-inset {
+            box-shadow: inset 4px 4px 8px #c5cad4, inset -4px -4px 8px #ffffff;
         }
 
-        table{
-            width:100%;
-            border-collapse:collapse;
+        /* Forest Jade Neumorphism */
+        .jade-outset {
+            box-shadow: 6px 6px 12px #cbd1cc, -6px -6px 12px #ffffff;
         }
-
-        th,td{
-            padding:10px;
-            border-bottom:1px solid #334155;
-            font-size:14px;
+        .jade-inset {
+            box-shadow: inset 4px 4px 8px #cbd1cc, inset -4px -4px 8px #ffffff;
         }
-
-        select{
-            background:#1e293b;
-            color:white;
-            border:none;
-            padding:6px;
-            border-radius:8px;
-        }
-
-        .progress{
-            width:100%;
-            height:12px;
-            background:#334155;
-            border-radius:30px;
-            overflow:hidden;
-        }
-
-        .progress-bar{
-            height:100%;
-            background:linear-gradient(90deg,#10b981,#6366f1);
-            width:0%;
-        }
-
-        .tab{
-            display:none;
-        }
-
-        .tab.active{
-            display:block;
-        }
-
     </style>
 </head>
+<body class="bg-slate-950 flex items-center justify-center min-h-screen p-2 md:p-6">
 
-<body>
+    <!-- จุดเชื่อมต่อหลักของแอปพลิเคชัน React -->
+    <div id="root"></div>
 
-<div class="max-w-md mx-auto p-4">
+    <!-- โค้ด React และตรรกะการประมวลผลทั้งหมด -->
+    <script type="text/babel">
+        const { useState, useMemo, useEffect } = React;
 
-<h1 class="text-3xl font-black mb-5">
-DDT Grade Simulator
-</h1>
+        // ข้อมูลเกรดและวิชาจริง 100% ดึงมาจากรูปใบผลการเรียน (Transcript)
+        const INITIAL_SUBJECTS = [
+            // --- ภาคการศึกษาที่ 1/2567 ---
+            { id: '1_1', semester: '1/2567', code: 'ART101', name: 'สุนทรียศาสตร์ ศิลปะและการออกแบบ', credits: 3, grade: 'D+', category: 'gen_human' },
+            { id: '1_2', semester: '1/2567', code: 'DES101', name: 'องค์ประกอบศิลป์และทฤษฎีสีเพื่อการออกแบบ', credits: 3, grade: 'D', category: 'core' },
+            { id: '1_3', semester: '1/2567', code: 'DES102', name: 'การวาดภาพเพื่อการออกแบบ', credits: 3, grade: 'D', category: 'core' },
+            { id: '1_4', semester: '1/2567', code: 'DIG101', name: 'คอมพิวเตอร์เพื่องานออกแบบและตกแต่งภาพ', credits: 3, grade: 'D+', category: 'major_req' },
+            { id: '1_5', semester: '1/2567', code: 'GEN101', name: 'สุขภาวะกายและจิต', credits: 3, grade: 'D+', category: 'gen_sci' },
+            { id: '1_6', semester: '1/2567', code: 'GEN102', name: 'คณิตศาสตร์และสถิติในชีวิตประจำวัน', credits: 3, grade: 'D', category: 'gen_math' },
+            { id: '1_7', semester: '1/2567', code: 'LNG101', name: 'ภาษาอังกฤษปรับพื้นฐาน 1', credits: 0, grade: 'S', category: 'gen_inter' },
 
-<div class="card">
+            // --- ภาคการศึกษาที่ 2/2567 ---
+            { id: '2_1', semester: '2/2567', code: 'DIG102', name: 'คอมพิวเตอร์เพื่อการออกแบบมัลติมีเดีย', credits: 3, grade: 'C+', category: 'major_req' },
+            { id: '2_2', semester: '2/2567', code: 'DIG103', name: 'คอมพิวเตอร์เพื่อการออกแบบ 3 มิติ', credits: 3, grade: 'D', category: 'major_req' },
+            { id: '2_3', semester: '2/2567', code: 'DES103', name: 'แนวคิดและการคิดวิเคราะห์เชิงออกแบบ', credits: 3, grade: 'D', category: 'core' },
+            { id: '2_4', semester: '2/2567', code: 'DES104', name: 'การออกแบบปฏิสัมพันธ์ขั้นพื้นฐาน', credits: 3, grade: 'C+', category: 'core' },
+            { id: '2_5', semester: '2/2567', code: 'GEN103', name: 'การสื่อสารเพื่อการนำเสนอ', credits: 2, grade: 'B', category: 'gen_thai' },
+            { id: '2_6', semester: '2/2567', code: 'GEN104', name: 'การอ่านและการเขียนภาษาไทยเพื่ออาชีพ', credits: 2, grade: 'C+', category: 'gen_thai' },
+            { id: '2_7', semester: '2/2567', code: 'LNG102', name: 'ภาษาอังกฤษปรับพื้นฐาน 2', credits: 0, grade: 'S', category: 'gen_inter' },
 
-<h2 class="font-bold text-xl">
-GPAX
-</h2>
+            // --- ภาคการศึกษาที่ 1/2568 ---
+            { id: '3_1', semester: '1/2568', code: 'DIG201', name: 'การสร้างแบบร่างและการสร้างแบบจำลอง', credits: 3, grade: 'C+', category: 'major_req' },
+            { id: '3_2', semester: '1/2568', code: 'DES201', name: 'การออกแบบกราฟิก', credits: 3, grade: 'D', category: 'core' },
+            { id: '3_3', semester: '1/2568', code: 'DES202', name: 'การเขียนโปรแกรมเบื้องต้นเพื่อการออกแบบและเทคโนโลยี', credits: 3, grade: 'B+', category: 'core' },
+            { id: '3_4', semester: '1/2568', code: 'DIG202', name: 'การออกแบบนวัตกรรมดิจิทัลเบื้องต้น', credits: 4, grade: 'D+', category: 'major_req' },
+            { id: '3_5', semester: '1/2568', code: 'GEN105', name: 'วิทยาศาสตร์เพื่อคุณภาพชีวิต', credits: 3, grade: 'B+', category: 'gen_sci' },
+            { id: '3_6', semester: '1/2568', code: 'LNG103', name: 'ภาษาอังกฤษเพื่อการสื่อสาร', credits: 2, grade: 'W', category: 'gen_inter' },
+            { id: '3_7', semester: '1/2568', code: 'CHN101', name: 'ภาษาจีนกลาง 1', credits: 1, grade: 'F', category: 'free' },
 
-<div id="gpax"
-style="font-size:55px;font-weight:900;">
-0.00
-</div>
+            // --- ภาคการศึกษาที่ 2/2568 ---
+            { id: '4_1', semester: '2/2568', code: 'DIG203', name: 'ระบบคอมพิวเตอร์พื้นฐาน', credits: 3, grade: 'D', category: 'major_req' },
+            { id: '4_2', semester: '2/2568', code: 'DIG204', name: 'การออกแบบเว็บไซต์เพื่ออุปกรณ์เคลื่อนที่', credits: 3, grade: 'C+', category: 'major_req' },
+            { id: '4_3', semester: '2/2568', code: 'DIG205', name: 'การออกแบบนวัตกรรมดิจิทัลเพื่องาน IoT', credits: 4, grade: 'D', category: 'major_req' },
+            { id: '4_4', semester: '2/2568', code: 'DES203', name: 'การออกแบบอินโฟกราฟิก', credits: 3, grade: 'D+', category: 'core' },
+            { id: '4_5', semester: '2/2568', code: 'GEN106', name: 'การคิดสร้างสรรค์เพื่อสังคม', credits: 3, grade: 'C+', category: 'gen_social' },
+            { id: '4_6', semester: '2/2568', code: 'LNG104', name: 'ภาษาอังกฤษเพื่อการสื่อสาร (ลงเรียนใหม่)', credits: 2, grade: 'D', category: 'gen_inter' },
 
-<div id="status">
--
-</div>
+            // --- ภาคการศึกษาที่ 1/2569 (ภาคปัจจุบัน - เกรดยังไม่ออก สำหรับกดทำนายอนาคต) ---
+            { id: '5_1', semester: '1/2569', code: 'DES301', name: 'ปัจจัยและความสัมพันธ์ระหว่างมนุษย์กับการออกแบบ', credits: 3, grade: ' ', category: 'core' },
+            { id: '5_2', semester: '1/2569', code: 'DIG301', name: 'การออกแบบนวัตกรรมดิจิทัลเชิงสร้างสรรค์ 1', credits: 4, grade: ' ', category: 'major_req' },
+            { id: '5_3', semester: '1/2569', code: 'DES302', name: 'สัมมนาการออกแบบและเทคโนโลยี', credits: 3, grade: ' ', category: 'core' },
+            { id: '5_4', semester: '1/2569', code: 'LAW301', name: 'กฎหมายทรัพย์สินทางปัญญาเพื่องานออกแบบ', credits: 3, grade: ' ', category: 'free' },
+            { id: '5_5', semester: '1/2569', code: 'GEN107', name: 'หลักปรัชญาของเศรษฐกิจพอเพียง', credits: 3, grade: ' ', category: 'gen_social' },
+            { id: '5_6', semester: '1/2569', code: 'GEN108', name: 'ภาวะผู้นำและบุคลิกภาพ', credits: 1, grade: ' ', category: 'gen_human' }
+        ];
 
-</div>
+        const GRADE_VALUES = {
+            'A': 4.0, 'B+': 3.5, 'B': 3.0, 'C+': 2.5, 'C': 2.0, 'D+': 1.5, 'D': 1.0, 'F': 0.0,
+            'S': null, 'W': null, 'I': null, ' ': null
+        };
 
-<div class="card">
+        const THEMES = {
+            luxuryNavy: {
+                name: 'Luxury Navy (กรมท่า)',
+                bg: 'bg-[#0f172a]',
+                text: 'text-slate-100',
+                textMuted: 'text-slate-400',
+                inset: 'navy-inset',
+                outset: 'navy-outset',
+                btnActive: 'navy-inset text-amber-400 font-extrabold border border-amber-400/20',
+                primaryColor: '#6366f1',
+                accent: 'text-amber-400'
+            },
+            obsidianDark: {
+                name: 'Obsidian Black (ดำคลาสสิก)',
+                bg: 'bg-[#121214]',
+                text: 'text-gray-100',
+                textMuted: 'text-gray-400',
+                inset: 'obsidian-inset',
+                outset: 'obsidian-outset',
+                btnActive: 'obsidian-inset text-emerald-400 font-extrabold',
+                primaryColor: '#10b981',
+                accent: 'text-emerald-400'
+            },
+            neonCyber: {
+                name: 'Neon Cyberpunk (นีออน)',
+                bg: 'bg-[#05050a]',
+                text: 'text-cyan-400',
+                textMuted: 'text-slate-500',
+                inset: 'cyber-inset',
+                outset: 'cyber-outset',
+                btnActive: 'cyber-inset text-pink-500 font-extrabold',
+                primaryColor: '#00f0ff',
+                accent: 'text-pink-500'
+            },
+            creamSlight: {
+                name: 'Soft Cream (สว่างนุ่มนวล)',
+                bg: 'bg-[#e5e9f0]',
+                text: 'text-slate-800',
+                textMuted: 'text-slate-500',
+                inset: 'cream-inset',
+                outset: 'cream-outset',
+                btnActive: 'cream-inset text-indigo-600 font-extrabold',
+                primaryColor: '#4f46e5',
+                accent: 'text-indigo-600'
+            },
+            jadeForest: {
+                name: 'Forest Jade (หยกเขียว)',
+                bg: 'bg-[#eaf0ec]',
+                text: 'text-emerald-900',
+                textMuted: 'text-emerald-700/60',
+                inset: 'jade-inset',
+                outset: 'jade-outset',
+                btnActive: 'jade-inset text-emerald-600 font-extrabold',
+                primaryColor: '#059669',
+                accent: 'text-emerald-600'
+            }
+        };
 
-<h2 class="font-bold mb-3">
-Dashboard
-</h2>
+        const CATEGORIES = {
+            all: 'ทุกกลุ่มวิชา',
+            gen_thai: '1.1 กลุ่มวิชาภาษาไทย',
+            gen_inter: '1.2 กลุ่มวิชาภาษาต่างประเทศ',
+            gen_sci: '1.3 กลุ่มวิชาวิทยาศาสตร์',
+            gen_math: '1.4 กลุ่มวิชาคณิตศาสตร์',
+            gen_social: '1.5 กลุ่มวิชาสังคมศาสตร์',
+            gen_human: '1.6 กลุ่มวิชามนุษยศาสตร์',
+            core: '2. กลุ่มวิชาแกน',
+            major_req: '3.1 กลุ่มวิชาชีพบังคับ',
+            major_elec: '3.2 กลุ่มวิชาชีพเลือก',
+            free: '4. หมวดเลือกเสรี'
+        };
 
-<div class="progress">
-<div class="progress-bar"
-id="progressBar"></div>
-</div>
+        const ALL_SEMESTERS = ['1/2567', '2/2567', '1/2568', '2/2568', '1/2569'];
 
-<p style="margin-top:10px;">
-หน่วยกิตสะสม
-<span id="creditText">
-0 / 133
-</span>
-</p>
+        function App() {
+            const [subjects, setSubjects] = useState(INITIAL_SUBJECTS);
+            const [activeTab, setActiveTab] = useState('dashboard'); 
+            const [selectedSemester, setSelectedSemester] = useState('1/2569');
+            const [currentTheme, setCurrentTheme] = useState('luxuryNavy');
+            const [showResetModal, setShowResetModal] = useState(false);
 
-</div>
+            // ฟอร์มสำหรับเพิ่มวิชาใหม่
+            const [formSubject, setFormSubject] = useState({
+                semester: '1/2569',
+                code: '',
+                name: '',
+                credits: 3,
+                grade: ' ',
+                category: 'core'
+            });
 
-<div class="card">
+            const activeStyle = THEMES[currentTheme];
 
-<h2>
-รายวิชา
-</h2>
+            // ฟังก์ชันคำนวณเกรดสะสม (GPAX) และหน่วยกิต แบบละเอียดตามเงื่อนไขของทางสถาบัน
+            const calculatedData = useMemo(() => {
+                let cumulativeGP = 0;      
+                let cumulativeCA = 0;      
+                let cumulativeCE = 0;      
+                let cumulativeGPACredits = 0; 
 
-<table>
+                const semesterBreakdown = {};
 
-<thead>
+                ALL_SEMESTERS.forEach(sem => {
+                    const semSubjects = subjects.filter(sub => sub.semester === sem);
+                    
+                    let semCA = 0; 
+                    let semCE = 0; 
+                    let semGPACredits = 0; 
+                    let semGP = 0; 
+                    let hasF = false;
 
-<tr>
+                    semSubjects.forEach(sub => {
+                        const val = GRADE_VALUES[sub.grade];
+                        const credits = Number(sub.credits);
 
-<th>รหัส</th>
+                        if (sub.grade === 'F') {
+                            hasF = true;
+                        }
 
-<th>หน่วยกิต</th>
+                        if (sub.grade !== ' ') {
+                            semCA += credits;
 
-<th>เกรด</th>
+                            if (sub.grade !== 'F' && sub.grade !== 'W' && sub.grade !== 'I') {
+                                semCE += credits;
+                            }
 
-</tr>
+                            if (val !== null && sub.grade !== 'W' && sub.grade !== 'I' && sub.grade !== 'S') {
+                                semGPACredits += credits;
+                                semGP += (val * credits);
+                            }
+                        }
+                    });
 
-</thead>
+                    // คำนวณแบบปัดทศนิยมลงเหลือสองตำแหน่ง เพื่อความตรงกับ Transcript
+                    const semGPA = semGPACredits > 0 ? Math.floor((semGP / semGPACredits) * 100) / 100 : 0;
 
-<tbody id="subjectTable">
+                    cumulativeCA += semCA;
+                    cumulativeCE += semCE;
+                    cumulativeGPACredits += semGPACredits;
+                    cumulativeGP += semGP;
 
-</tbody>
+                    const currentGPAX = cumulativeGPACredits > 0 ? Math.floor((cumulativeGP / cumulativeGPACredits) * 100) / 100 : 0;
 
-</table>
+                    let statusLabel = 'ปกติ';
+                    let statusColor = 'text-emerald-400';
+                    if (currentGPAX > 0 && currentGPAX < 1.75) {
+                        statusLabel = 'วิทยทัณฑ์ < 1.75 ⚠️';
+                        statusColor = 'text-rose-400 font-extrabold animate-pulse';
+                    } else if (currentGPAX >= 1.75 && currentGPAX < 2.00) {
+                        statusLabel = 'วิทยทัณฑ์ < 2.00 ⚠️';
+                        statusColor = 'text-amber-400 font-bold';
+                    }
 
-</div>
+                    semesterBreakdown[sem] = {
+                        subjects: semSubjects,
+                        ca: semCA,
+                        ce: semCE,
+                        gp: semGP,
+                        gpa: semGPA.toFixed(2),
+                        cumCA: cumulativeCA,
+                        cumCE: cumulativeCE,
+                        cumCC: cumulativeGPACredits,
+                        cumGP: cumulativeGP,
+                        gpax: currentGPAX.toFixed(2),
+                        statusLabel,
+                        statusColor,
+                        hasF
+                    };
+                });
 
-<div class="card">
+                const latestSem = ALL_SEMESTERS[ALL_SEMESTERS.length - 1];
+                const overallGPAX = parseFloat(semesterBreakdown[latestSem]?.gpax || '0.00');
+                const overallCE = semesterBreakdown[latestSem]?.cumCE || 0;
 
-<h2>
-เพิ่มรายวิชา
-</h2>
+                // ตรวจสอบเกียรตินิยม
+                let honorsResult = 'ไม่เข้าเกณฑ์เกียรตินิยม';
+                let honorsSubText = 'เกรดเฉลี่ยสะสมไม่ถึงเกณฑ์ขั้นต่ำ 3.25';
+                const hasFHistory = subjects.some(s => s.grade === 'F');
 
-<input
-id="code"
-class="input"
-placeholder="รหัสวิชา">
+                if (hasFHistory) {
+                    honorsSubText = 'มีประวัติติดเกรด F ตลอดการศึกษา (หมดสิทธิ์เกียรตินิยม)';
+                } else if (overallGPAX >= 3.75) {
+                    honorsResult = overallCE >= 133 ? 'เกียรตินิยมอันดับ 1 🏆' : 'ว่าที่เกียรตินิยมอันดับ 1';
+                    honorsSubText = overallCE >= 133 ? 'คุณสมบัติครบถ้วนตามหลักสูตร!' : `ต้องการอีก ${133 - overallCE} หน่วยกิตเพื่อเรียนจบตามแผน`;
+                } else if (overallGPAX >= 3.25) {
+                    honorsResult = overallCE >= 133 ? 'เกียรตินิยมอันดับ 2 🥈' : 'ว่าที่เกียรตินิยมอันดับ 2';
+                    honorsSubText = overallCE >= 133 ? 'คุณสมบัติครบถ้วนตามแผนการเรียน!' : `ต้องการอีก ${133 - overallCE} หน่วยกิตเพื่อเรียนจบตามแผน`;
+                }
 
-<input
-id="name"
-class="input"
-placeholder="ชื่อวิชา">
+                // นับความก้าวหน้าหน่วยกิตรายกลุ่มวิชา
+                const categoryProgress = {};
+                Object.keys(CATEGORIES).forEach(c => categoryProgress[c] = 0);
+                subjects.forEach(sub => {
+                    if (sub.grade !== ' ' && sub.grade !== 'F' && sub.grade !== 'W' && sub.grade !== 'I') {
+                        categoryProgress[sub.category] = (categoryProgress[sub.category] || 0) + Number(sub.credits);
+                    }
+                });
 
-<input
-id="credit"
-type="number"
-class="input"
-value="3">
+                return {
+                    semesterBreakdown,
+                    overallGPAX,
+                    overallCE,
+                    honorsResult,
+                    honorsSubText,
+                    categoryProgress
+                };
+            }, [subjects]);
 
-<select id="grade">
+            // หาเกรดเป้าหมายขั้นต่ำของเทอมปัจจุบันเพื่อหลุดวิทยทัณฑ์
+            const simulationInsight = useMemo(() => {
+                const uncalculatedSub = subjects.filter(s => s.semester === '1/2569' && s.grade === ' ');
+                const calculatedSub = subjects.filter(s => !(s.semester === '1/2569' && s.grade === ' '));
+                
+                let prevGP = 0;
+                let prevCredits = 0;
+                calculatedSub.forEach(s => {
+                    const v = GRADE_VALUES[s.grade];
+                    if (v !== null && s.grade !== 'S' && s.grade !== 'W') {
+                        prevGP += (v * Number(s.credits));
+                        prevCredits += Number(s.credits);
+                    }
+                });
 
-<option>A</option>
-<option>B+</option>
-<option>B</option>
-<option>C+</option>
-<option>C</option>
-<option>D+</option>
-<option>D</option>
-<option>F</option>
+                const termCredits = uncalculatedSub.reduce((sum, item) => sum + Number(item.credits), 0);
+                const targetPointsNeeded = (2.00 * (prevCredits + termCredits)) - prevGP;
+                const requiredGPA = termCredits > 0 ? (targetPointsNeeded / termCredits) : 0;
 
-</select>
+                return {
+                    termCredits,
+                    requiredGPA: requiredGPA > 0 ? requiredGPA.toFixed(2) : '0.00',
+                    isImpossible: requiredGPA > 4.0,
+                    isSafe: (prevGP / prevCredits) >= 2.00
+                };
+            }, [subjects]);
 
-<br><br>
+            const changeSubjectGrade = (id, newGrade) => {
+                setSubjects(prev => prev.map(s => s.id === id ? { ...s, grade: newGrade } : s));
+            };
 
-<button
-class="btn btn-primary"
-onclick="addSubject()">
+            const addCustomSubject = (e) => {
+                e.preventDefault();
+                if (!formSubject.code || !formSubject.name) return;
+                const newId = 'custom_' + Date.now();
+                setSubjects(prev => [...prev, { ...formSubject, id: newId }]);
+                setFormSubject({
+                    semester: selectedSemester,
+                    code: '',
+                    name: '',
+                    credits: 3,
+                    grade: ' ',
+                    category: 'core'
+                });
+            };
 
-เพิ่มรายวิชา
+            const deleteSubject = (id) => {
+                setSubjects(prev => prev.filter(s => s.id !== id));
+            };
 
-</button>
+            const triggerReset = () => {
+                setSubjects(INITIAL_SUBJECTS);
+                setShowResetModal(false);
+            };
 
-</div>
+            return (
+                <div className={`w-full max-w-[412px] min-h-[890px] rounded-[50px] border-[10px] border-[#222] bg-[#0c0d12] shadow-2xl relative flex flex-col overflow-hidden transition-all duration-300 ${activeStyle.bg} ${activeStyle.text}`}>
+                    
+                    {/* --- แถบสถานะโทรศัพท์ด้านบน จำลอง Samsung S26 --- */}
+                    <div className="h-10 bg-black/90 w-full px-6 flex justify-between items-center text-[11px] text-gray-400 z-50">
+                        <div className="flex items-center gap-1 font-bold">
+                            <span>07:32</span>
+                            <span className="text-[9px] opacity-70">AM</span>
+                        </div>
+                        <div className="w-3.5 h-3.5 bg-black rounded-full border border-gray-800" />
+                        <div className="flex items-center gap-1.5">
+                            <span className="text-[9px] text-indigo-400 font-extrabold">5G</span>
+                            <span>📶</span>
+                            <div className="flex items-center gap-1">
+                                <span>78%</span>
+                                <span className="text-emerald-400">🔋</span>
+                            </div>
+                        </div>
+                    </div>
 
-</div>
+                    {/* --- หัวเรื่องแอปและปุ่มรีเซ็ต --- */}
+                    <div className="p-4 flex flex-col gap-3">
+                        <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-2">
+                                <span className="text-2xl">🎓</span>
+                                <div>
+                                    <h1 className="text-xs font-black tracking-wider uppercase">DDT Grade Planner</h1>
+                                    <p className="text-[8px] opacity-60">สถาบันแห่งการสร้างบัณฑิตมืออาชีพ</p>
+                                </div>
+                            </div>
+                            
+                            <button 
+                                onClick={() => setShowResetModal(true)}
+                                className={`p-2 rounded-xl ${activeStyle.outset} text-red-400 hover:scale-105 transition-all text-xs`}
+                            >
+                                🔄 รีเซ็ตเกรด
+                            </button>
+                        </div>
 
-<script src="script.js"></script>
+                        {/* แถบสลับธีม 5 สีพรีเมียม */}
+                        <div className={`p-2 rounded-2xl ${activeStyle.inset} flex justify-between items-center text-[10px]`}>
+                            <span className="font-bold pl-1">เลือกธีม:</span>
+                            <div className="flex gap-2">
+                                {Object.keys(THEMES).map((key) => (
+                                    <button
+                                        key={key}
+                                        onClick={() => setCurrentTheme(key)}
+                                        className={`w-5 h-5 rounded-full border-2 transition-transform ${
+                                            currentTheme === key ? 'border-indigo-400 scale-125' : 'border-transparent opacity-60'
+                                        }`}
+                                        style={{ backgroundColor: THEMES[key].primaryColor }}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    </div>
 
+                    {/* --- หน้าจอเนื้อหาแอปหลัก --- */}
+                    <div className="flex-1 overflow-y-auto px-4 pb-24 space-y-4" style={{ maxHeight: '700px' }}>
+                        
+                        {/* TAB 1: หน้าแผงควบคุมหลัก */}
+                        {activeTab === 'dashboard' && (
+                            <div className="space-y-4 animate-fadeIn">
+                                
+                                {/* วงกลมสถิติและคะแนนสะสม */}
+                                <div className={`p-5 rounded-[30px] ${activeStyle.outset} text-center space-y-3`}>
+                                    <span className="text-[9px] uppercase tracking-wider opacity-60 font-black">ผลการเรียนเฉลี่ยสะสม (GPAX)</span>
+                                    <div className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-teal-400">
+                                        {calculatedData.overallGPAX.toFixed(2)}
+                                    </div>
+
+                                    <div className={`inline-block px-3 py-1 rounded-full text-[10px] font-black ${
+                                        calculatedData.overallGPAX >= 2.0 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400 animate-pulse'
+                                    }`}>
+                                        สถานะ: {calculatedData.overallGPAX >= 2.0 ? 'ปกติ (พ้นวิทยทัณฑ์)' : 'วิทยทัณฑ์สะสม ⚠️'}
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-2 text-[10px] pt-1">
+                                        <div className={`p-2 rounded-xl ${activeStyle.inset}`}>
+                                            <span className="block opacity-65">หน่วยกิตผ่านแล้ว (CE)</span>
+                                            <strong className="text-xs">{calculatedData.overallCE} / 133 นก.</strong>
+                                        </div>
+                                        <div className={`p-2 rounded-xl ${activeStyle.inset}`}>
+                                            <span className="block opacity-65">วิชาที่มีประวัติ F / W</span>
+                                            <strong className="text-xs text-amber-500">
+                                                F ({subjects.filter(s => s.grade === 'F').length}) / W ({subjects.filter(s => s.grade === 'W').length})
+                                            </strong>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* เครื่องมือวิเคราะห์แผนแก้กรรม (พ้นวิทยทัณฑ์) */}
+                                <div className={`p-4 rounded-3xl ${activeStyle.outset} space-y-2.5`}>
+                                    <h3 className="text-xs font-black flex items-center gap-1.5">
+                                        📈 แผนจำลองพ้นวิทยทัณฑ์ (1/2569)
+                                    </h3>
+                                    
+                                    {simulationInsight.isSafe ? (
+                                        <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-300 text-[11px]">
+                                            ✨ ขณะนี้เฉลี่ยสะสมของคุณผ่านเกณฑ์ 2.00 แล้ว ขอให้ตั้งใจรักษาเกรดเพื่อพ้นสถานะถาวร!
+                                        </div>
+                                    ) : (
+                                        <div className="text-[11px] space-y-2">
+                                            <p className="opacity-80">
+                                                เทอมปัจจุบันมีวิชาจดทะเบียนรอการคำนวณเกรดอยู่ <strong className="text-indigo-400">{simulationInsight.termCredits} หน่วยกิต</strong>
+                                            </p>
+                                            <div className={`p-3 rounded-2xl ${activeStyle.inset} space-y-1`}>
+                                                <div className="flex justify-between">
+                                                    <span>เกรดเฉลี่ยเทอมนี้ที่ต้องการขั้นต่ำ:</span>
+                                                    <strong className="text-amber-400 text-xs">{simulationInsight.requiredGPA}</strong>
+                                                </div>
+                                                {simulationInsight.isImpossible ? (
+                                                    <span className="text-[9px] text-red-400 block">*จำต้องอาศัยวิชาเรียนเพิ่มหรือรีเกรดเสริม</span>
+                                                ) : (
+                                                    <div className="h-1.5 w-full bg-slate-800 rounded-full mt-1.5 overflow-hidden">
+                                                        <div className="h-full bg-amber-400" style={{ width: `${(parseFloat(simulationInsight.requiredGPA) / 4) * 100}%` }} />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* รายงานเกียรตินิยม */}
+                                <div className={`p-4 rounded-3xl ${activeStyle.outset} space-y-2`}>
+                                    <h3 className="text-xs font-black">🏅 สถานภาพเกียรตินิยม</h3>
+                                    <div className={`p-3 rounded-2xl ${activeStyle.inset} text-center`}>
+                                        <span className="text-sm font-black text-amber-400 block">{calculatedData.honorsResult}</span>
+                                        <span className="text-[9px] opacity-70 block mt-1">{calculatedData.honorsSubText}</span>
+                                    </div>
+                                </div>
+
+                            </div>
+                        )}
+
+                        {/* TAB 2: หน้ารายละเอียดแต่ละภาคเรียน */}
+                        {activeTab === 'semesters' && (
+                            <div className="space-y-4 animate-fadeIn">
+                                
+                                {/* ตัวเลือกภาคเรียน */}
+                                <div className="flex gap-1.5 overflow-x-auto pb-1">
+                                    {ALL_SEMESTERS.map(sem => (
+                                        <button
+                                            key={sem}
+                                            onClick={() => setSelectedSemester(sem)}
+                                            className={`px-3 py-2 rounded-xl text-[10px] font-black flex-shrink-0 transition-all ${
+                                                selectedSemester === sem ? activeStyle.btnActive : `opacity-60 ${activeStyle.outset}`
+                                            }`}
+                                        >
+                                            {sem === '1/2569' ? '1/2569 (จำลองเกรด)' : sem}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {/* แผงวิเคราะห์ผลของเทอมที่เลือก */}
+                                {calculatedData.semesterBreakdown[selectedSemester] && (
+                                    <div className={`p-4 rounded-3xl ${activeStyle.outset} space-y-3`}>
+                                        <div className="flex justify-between items-center border-b border-white/5 pb-1.5">
+                                            <span className="text-xs font-bold">ผลการเรียนเทอม {selectedSemester}</span>
+                                            <span className={`text-[9px] font-black ${calculatedData.semesterBreakdown[selectedSemester].statusColor}`}>
+                                                {calculatedData.semesterBreakdown[selectedSemester].statusLabel}
+                                            </span>
+                                        </div>
+
+                                        <div className="grid grid-cols-4 gap-2 text-center text-[9px]">
+                                            <div className={`p-2 rounded-xl ${activeStyle.inset}`}>
+                                                <span className="block opacity-60">GPA เทอม</span>
+                                                <strong className="text-xs text-indigo-300">{calculatedData.semesterBreakdown[selectedSemester].gpa}</strong>
+                                            </div>
+                                            <div className={`p-2 rounded-xl ${activeStyle.inset}`}>
+                                                <span className="block opacity-60">GPAX สะสม</span>
+                                                <strong className="text-xs text-purple-300">{calculatedData.semesterBreakdown[selectedSemester].gpax}</strong>
+                                            </div>
+                                            <div className={`p-2 rounded-xl ${activeStyle.inset}`}>
+                                                <span className="block opacity-60">ลงทะเบียน (CA)</span>
+                                                <strong className="text-xs">{calculatedData.semesterBreakdown[selectedSemester].ca}</strong>
+                                            </div>
+                                            <div className={`p-2 rounded-xl ${activeStyle.inset}`}>
+                                                <span className="block opacity-60">ผ่านสะสม (CE)</span>
+                                                <strong className="text-xs">{calculatedData.semesterBreakdown[selectedSemester].cumCE}</strong>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* รายการวิชาในเทอมนั้น ๆ */}
+                                <div className={`p-4 rounded-3xl ${activeStyle.outset} space-y-2.5`}>
+                                    <span className="text-xs font-black block">รายวิชาลงทะเบียนเรียน ({subjects.filter(s => s.semester === selectedSemester).length})</span>
+                                    
+                                    <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+                                        {subjects.filter(s => s.semester === selectedSemester).map(sub => (
+                                            <div key={sub.id} className={`p-3 rounded-2xl ${activeStyle.inset} flex justify-between items-center gap-3`}>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <span className="text-[10px] font-black text-indigo-400">{sub.code}</span>
+                                                        <span className="text-[9px] opacity-50">({sub.credits} นก.)</span>
+                                                    </div>
+                                                    <p className="text-xs font-bold truncate">{sub.name}</p>
+                                                    <span className="text-[8px] text-slate-500 block truncate">{CATEGORIES[sub.category]}</span>
+                                                </div>
+
+                                                <div className="flex items-center gap-2">
+                                                    <select
+                                                        value={sub.grade}
+                                                        onChange={(e) => changeSubjectGrade(sub.id, e.target.value)}
+                                                        className="bg-slate-800 text-slate-200 border border-slate-700 rounded-lg text-xs p-1 font-bold outline-none cursor-pointer"
+                                                    >
+                                                        <option value=" ">เกรดยังไม่ออก</option>
+                                                        {Object.keys(GRADE_VALUES).filter(k => k !== ' ').map(g => (
+                                                            <option key={g} value={g}>{g}</option>
+                                                        ))}
+                                                    </select>
+
+                                                    {sub.id.startsWith('custom_') && (
+                                                        <button 
+                                                            onClick={() => deleteSubject(sub.id)}
+                                                            className="text-red-400 text-sm pl-1"
+                                                        >
+                                                            🗑️
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* ฟอร์มเพิ่มวิชาลงทะเบียนเพิ่ม */}
+                                <form onSubmit={addCustomSubject} className={`p-4 rounded-3xl ${activeStyle.outset} space-y-2.5`}>
+                                    <span className="text-xs font-bold block">➕ ลงทะเบียนวิชาเพิ่มจำลอง</span>
+                                    
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <input 
+                                            type="text" 
+                                            placeholder="รหัสวิชา" 
+                                            required 
+                                            value={formSubject.code}
+                                            onChange={(e) => setFormSubject({...formSubject, code: e.target.value.toUpperCase()})}
+                                            className={`p-2 rounded-xl text-xs ${activeStyle.inset} bg-transparent border-none outline-none text-slate-100`}
+                                        />
+                                        <input 
+                                            type="text" 
+                                            placeholder="ชื่อวิชา" 
+                                            required 
+                                            value={formSubject.name}
+                                            onChange={(e) => setFormSubject({...formSubject, name: e.target.value})}
+                                            className={`p-2 rounded-xl text-xs ${activeStyle.inset} bg-transparent border-none outline-none text-slate-100`}
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-3 gap-2 text-[10px]">
+                                        <select
+                                            value={formSubject.credits}
+                                            onChange={(e) => setFormSubject({...formSubject, credits: Number(e.target.value)})}
+                                            className={`p-2 rounded-xl ${activeStyle.inset} bg-transparent border-none`}
+                                        >
+                                            <option value={1} className="bg-slate-900 text-white">1 นก.</option>
+                                            <option value={2} className="bg-slate-900 text-white">2 นก.</option>
+                                            <option value={3} className="bg-slate-900 text-white">3 นก.</option>
+                                            <option value={4} className="bg-slate-900 text-white">4 นก.</option>
+                                        </select>
+
+                                        <select
+                                            value={formSubject.grade}
+                                            onChange={(e) => setFormSubject({...formSubject, grade: e.target.value})}
+                                            className={`p-2 rounded-xl ${activeStyle.inset} bg-transparent border-none`}
+                                        >
+                                            <option value=" " className="bg-slate-900 text-white">ยังไม่มีเกรด</option>
+                                            {Object.keys(GRADE_VALUES).filter(g => g !== ' ').map(g => (
+                                                <option key={g} value={g} className="bg-slate-900 text-white">เกรด {g}</option>
+                                            ))}
+                                        </select>
+
+                                        <select
+                                            value={formSubject.category}
+                                            onChange={(e) => setFormSubject({...formSubject, category: e.target.value})}
+                                            className={`p-2 rounded-xl ${activeStyle.inset} bg-transparent border-none`}
+                                        >
+                                            {Object.entries(CATEGORIES).filter(([k]) => k !== 'all').map(([key, val]) => (
+                                                <option key={key} value={key} className="bg-slate-900 text-white">{val.split(' ')[1] || val}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <button 
+                                        type="submit"
+                                        className="w-full py-2 rounded-xl text-xs font-bold text-center bg-indigo-600 text-white"
+                                    >
+                                        เพิ่มเข้ารายการเทอม {selectedSemester}
+                                    </button>
+                                </form>
+
+                            </div>
+                        )}
+
+                        {/* TAB 3: โครงสร้างหลักสูตร */}
+                        {activeTab === 'curriculum' && (
+                            <div className="space-y-4 animate-fadeIn">
+                                <div className={`p-4 rounded-3xl ${activeStyle.outset} space-y-3`}>
+                                    <h3 className="text-xs font-black border-b border-white/5 pb-2">📋 โครงสร้างหลักสูตร 133 หน่วยกิต</h3>
+                                    
+                                    <div className="space-y-3 text-xs">
+                                        {/* 1. หมวดศึกษาทั่วไป */}
+                                        <div className="space-y-1">
+                                            <div className="flex justify-between text-[11px] font-bold">
+                                                <span>1. หมวดศึกษาทั่วไป (เป้าหมาย 33 นก.)</span>
+                                                <span>{calculatedData.categoryProgress.gen_thai + calculatedData.categoryProgress.gen_inter + calculatedData.categoryProgress.gen_sci + calculatedData.categoryProgress.gen_math + calculatedData.categoryProgress.gen_social + calculatedData.categoryProgress.gen_human} / 33 นก.</span>
+                                            </div>
+                                            <div className={`h-2 w-full rounded-full ${activeStyle.inset} overflow-hidden`}>
+                                                <div className="h-full bg-emerald-400" style={{ width: `${Math.min(100, ((calculatedData.categoryProgress.gen_thai + calculatedData.categoryProgress.gen_inter + calculatedData.categoryProgress.gen_sci + calculatedData.categoryProgress.gen_math + calculatedData.categoryProgress.gen_social + calculatedData.categoryProgress.gen_human) / 33) * 100)}%` }} />
+                                            </div>
+                                        </div>
+
+                                        {/* 2. กลุ่มวิชาแกน */}
+                                        <div className="space-y-1">
+                                            <div className="flex justify-between text-[11px] font-bold">
+                                                <span>2. กลุ่มวิชาแกน (เป้าหมาย 27 นก.)</span>
+                                                <span>{calculatedData.categoryProgress.core} / 27 นก.</span>
+                                            </div>
+                                            <div className={`h-2 w-full rounded-full ${activeStyle.inset} overflow-hidden`}>
+                                                <div className="h-full bg-blue-400" style={{ width: `${Math.min(100, (calculatedData.categoryProgress.core / 27) * 100)}%` }} />
+                                            </div>
+                                        </div>
+
+                                        {/* 3.1 บังคับ */}
+                                        <div className="space-y-1">
+                                            <div className="flex justify-between text-[11px] font-bold">
+                                                <span>3.1 กลุ่มวิชาชีพบังคับ (เป้าหมาย 52 นก.)</span>
+                                                <span>{calculatedData.categoryProgress.major_req} / 52 นก.</span>
+                                            </div>
+                                            <div className={`h-2 w-full rounded-full ${activeStyle.inset} overflow-hidden`}>
+                                                <div className="h-full bg-indigo-500" style={{ width: `${Math.min(100, (calculatedData.categoryProgress.major_req / 52) * 100)}%` }} />
+                                            </div>
+                                        </div>
+
+                                        {/* 3.2 เลือก */}
+                                        <div className="space-y-1">
+                                            <div className="flex justify-between text-[11px] font-bold">
+                                                <span>3.2 กลุ่มวิชาชีพเลือก (เป้าหมาย 15 นก.)</span>
+                                                <span>{calculatedData.categoryProgress.major_elec} / 15 นก.</span>
+                                            </div>
+                                            <div className={`h-2 w-full rounded-full ${activeStyle.inset} overflow-hidden`}>
+                                                <div className="h-full bg-pink-500" style={{ width: `${Math.min(100, (calculatedData.categoryProgress.major_elec / 15) * 100)}%` }} />
+                                            </div>
+                                        </div>
+
+                                        {/* 4. เลือกเสรี */}
+                                        <div className="space-y-1">
+                                            <div className="flex justify-between text-[11px] font-bold">
+                                                <span>4. หมวดเลือกเสรี (เป้าหมาย 6 นก.)</span>
+                                                <span>{calculatedData.categoryProgress.free} / 6 นก.</span>
+                                            </div>
+                                            <div className={`h-2 w-full rounded-full ${activeStyle.inset} overflow-hidden`}>
+                                                <div className="h-full bg-amber-400" style={{ width: `${Math.min(100, (calculatedData.categoryProgress.free / 6) * 100)}%` }} />
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                    </div>
+
+                    {/* --- แถบปุ่มเมนูด้านล่างสุด (Navigation Tab Bar) --- */}
+                    <div className="absolute bottom-5 left-4 right-4 z-40">
+                        <div className={`p-2 rounded-full ${activeStyle.outset} flex justify-around items-center backdrop-blur-md bg-opacity-90`}>
+                            
+                            <button
+                                onClick={() => setActiveTab('dashboard')}
+                                className={`flex-1 py-3 rounded-full flex flex-col items-center justify-center transition-all ${
+                                    activeTab === 'dashboard' ? activeStyle.btnActive : 'opacity-65'
+                                }`}
+                            >
+                                <span className="text-sm">📊</span>
+                                <span className="text-[8px] font-bold">แผงควบคุม</span>
+                            </button>
+
+                            <button
+                                onClick={() => setActiveTab('semesters')}
+                                className={`flex-1 py-3 rounded-full flex flex-col items-center justify-center transition-all ${
+                                    activeTab === 'semesters' ? activeStyle.btnActive : 'opacity-65'
+                                }`}
+                            >
+                                <span className="text-sm">📅</span>
+                                <span className="text-[8px] font-bold">ภาคเรียน</span>
+                            </button>
+
+                            <button
+                                onClick={() => setActiveTab('curriculum')}
+                                className={`flex-1 py-3 rounded-full flex flex-col items-center justify-center transition-all ${
+                                    activeTab === 'curriculum' ? activeStyle.btnActive : 'opacity-65'
+                                }`}
+                            >
+                                <span className="text-sm">ℹ️</span>
+                                <span className="text-[8px] font-bold">หลักสูตร</span>
+                            </button>
+
+                        </div>
+                    </div>
+
+                    {/* --- โมดอลป๊อปอัปยืนยันการรีเซ็ต (Custom Confirm Pop-up) --- */}
+                    {showResetModal && (
+                        <div className="absolute inset-0 bg-black/80 flex items-center justify-center p-6 z-[100] animate-fadeIn">
+                            <div className="p-5 rounded-3xl bg-[#1a1f2c] border border-white/10 w-full max-w-[300px] text-center space-y-4 shadow-2xl">
+                                <span className="text-3xl block">⚠️</span>
+                                <h3 className="text-xs font-black text-white">ต้องการรีเซ็ตข้อมูลทั้งหมด?</h3>
+                                <p className="text-[10px] text-slate-400">เกรดและประวัติวิชาทั้งหมดจะถูกรีเซ็ตกลับเป็นข้อมูลจริงจากรูปใบเกรดของคุณ</p>
+                                <div className="flex gap-2 text-xs font-bold">
+                                    <button 
+                                        onClick={() => setShowResetModal(false)}
+                                        className="flex-1 py-2 rounded-xl bg-slate-800 text-white"
+                                    >
+                                        ยกเลิก
+                                    </button>
+                                    <button 
+                                        onClick={triggerReset}
+                                        className="flex-1 py-2 rounded-xl bg-red-600 text-white"
+                                    >
+                                        ยืนยันรีเซ็ต
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
 </body>
 </html>
-import React, { useState, useEffect, useMemo } from 'react';
-import { 
-  BookOpen, 
-  Award, 
-  Plus, 
-  Trash2, 
-  RefreshCw, 
-  CheckCircle, 
-  AlertTriangle, 
-  Info,
-  GraduationCap,
-  Sparkles,
-  PieChart,
-  ListFilter,
-  TrendingUp,
-  Calendar,
-  Save,
-  ChevronDown,
-  Battery,
-  Wifi,
-  RotateCcw,
-  ShieldCheck
-} from 'lucide-react';
-
-const INITIAL_SUBJECTS = [
-  // --- ภาคการศึกษาที่ 1/2567 ---
-  { id: '1_1', semester: '1/2567', code: 'ART101', name: 'สุนทรียศาสตร์ ศิลปะและการออกแบบ', credits: 3, grade: 'D+', category: 'gen_human' },
-  { id: '1_2', semester: '1/2567', code: 'DES101', name: 'องค์ประกอบศิลป์และทฤษฎีสีเพื่อการออกแบบ', credits: 3, grade: 'D', category: 'core' },
-  { id: '1_3', semester: '1/2567', code: 'DES102', name: 'การวาดภาพเพื่อการออกแบบ', credits: 3, grade: 'D', category: 'core' },
-  { id: '1_4', semester: '1/2567', code: 'DIG101', name: 'คอมพิวเตอร์เพื่องานออกแบบและตกแต่งภาพ', credits: 3, grade: 'D+', category: 'major_req' },
-  { id: '1_5', semester: '1/2567', code: 'GEN101', name: 'สุขภาวะกายและจิต', credits: 3, grade: 'D+', category: 'gen_sci' },
-  { id: '1_6', semester: '1/2567', code: 'GEN102', name: 'คณิตศาสตร์และสถิติในชีวิตประจำวัน', credits: 3, grade: 'D', category: 'gen_math' },
-  { id: '1_7', semester: '1/2567', code: 'LNG101', name: 'ภาษาอังกฤษปรับพื้นฐาน 1', credits: 0, grade: 'S', category: 'gen_inter' },
-
-  // --- ภาคการศึกษาที่ 2/2567 ---
-  { id: '2_1', semester: '2/2567', code: 'DIG102', name: 'คอมพิวเตอร์เพื่อการออกแบบมัลติมีเดีย', credits: 3, grade: 'C+', category: 'major_req' },
-  { id: '2_2', semester: '2/2567', code: 'DIG103', name: 'คอมพิวเตอร์เพื่อการออกแบบ 3 มิติ', credits: 3, grade: 'D', category: 'major_req' },
-  { id: '2_3', semester: '2/2567', code: 'DES103', name: 'แนวคิดและการคิดวิเคราะห์เชิงออกแบบ', credits: 3, grade: 'D', category: 'core' },
-  { id: '2_4', semester: '2/2567', code: 'DES104', name: 'การออกแบบปฏิสัมพันธ์ขั้นพื้นฐาน', credits: 3, grade: 'C+', category: 'core' },
-  { id: '2_5', semester: '2/2567', code: 'GEN103', name: 'การสื่อสารเพื่อการนำเสนอ', credits: 2, grade: 'B', category: 'gen_thai' },
-  { id: '2_6', semester: '2/2567', code: 'GEN104', name: 'การอ่านและการเขียนภาษาไทยเพื่ออาชีพ', credits: 2, grade: 'C+', category: 'gen_thai' },
-  { id: '2_7', semester: '2/2567', code: 'LNG102', name: 'ภาษาอังกฤษปรับพื้นฐาน 2', credits: 0, grade: 'S', category: 'gen_inter' },
-
-  // --- ภาคการศึกษาที่ 1/2568 ---
-  { id: '3_1', semester: '1/2568', code: 'DIG201', name: 'การสร้างแบบร่างและการสร้างแบบจำลอง', credits: 3, grade: 'C+', category: 'major_req' },
-  { id: '3_2', semester: '1/2568', code: 'DES201', name: 'การออกแบบกราฟิก', credits: 3, grade: 'D', category: 'core' },
-  { id: '3_3', semester: '1/2568', code: 'DES202', name: 'การเขียนโปรแกรมเบื้องต้นเพื่อการออกแบบและเทคโนโลยี', credits: 3, grade: 'B+', category: 'core' },
-  { id: '3_4', semester: '1/2568', code: 'DIG202', name: 'การออกแบบนวัตกรรมดิจิทัลเบื้องต้น', credits: 4, grade: 'D+', category: 'major_req' },
-  { id: '3_5', semester: '1/2568', code: 'GEN105', name: 'วิทยาศาสตร์เพื่อคุณภาพชีวิต', credits: 3, grade: 'B+', category: 'gen_sci' },
-  { id: '3_6', semester: '1/2568', code: 'LNG103', name: 'ภาษาอังกฤษเพื่อการสื่อสาร', credits: 2, grade: 'W', category: 'gen_inter' },
-  { id: '3_7', semester: '1/2568', code: 'CHN101', name: 'ภาษาจีนกลาง 1', credits: 1, grade: 'F', category: 'free' },
-
-  // --- ภาคการศึกษาที่ 2/2568 ---
-  { id: '4_1', semester: '2/2568', code: 'DIG203', name: 'ระบบคอมพิวเตอร์พื้นฐาน', credits: 3, grade: 'D', category: 'major_req' },
-  { id: '4_2', semester: '2/2568', code: 'DIG204', name: 'การออกแบบเว็บไซต์เพื่ออุปกรณ์เคลื่อนที่', credits: 3, grade: 'C+', category: 'major_req' },
-  { id: '4_3', semester: '2/2568', code: 'DIG205', name: 'การออกแบบนวัตกรรมดิจิทัลเพื่องาน IoT', credits: 4, grade: 'D', category: 'major_req' },
-  { id: '4_4', semester: '2/2568', code: 'DES203', name: 'การออกแบบอินโฟกราฟิก', credits: 3, grade: 'D+', category: 'core' },
-  { id: '4_5', semester: '2/2568', code: 'GEN106', name: 'การคิดสร้างสรรค์เพื่อสังคม', credits: 3, grade: 'C+', category: 'gen_social' },
-  { id: '4_6', semester: '2/2568', code: 'LNG104', name: 'ภาษาอังกฤษเพื่อการสื่อสาร (เรียนซ้ำ)', credits: 2, grade: 'D', category: 'gen_inter' },
-
-  // --- ภาคการศึกษาที่ 1/2569 (ภาคปัจจุบัน - เกรดว่างเพื่อใช้คำนวณพยากรณ์ล่วงหน้า) ---
-  { id: '5_1', semester: '1/2569', code: 'DES301', name: 'ปัจจัยและความสัมพันธ์ระหว่างมนุษย์กับการออกแบบ', credits: 3, grade: ' ', category: 'core' },
-  { id: '5_2', semester: '1/2569', code: 'DIG301', name: 'การออกแบบนวัตกรรมดิจิทัลเชิงสร้างสรรค์ 1', credits: 4, grade: ' ', category: 'major_req' },
-  { id: '5_3', semester: '1/2569', code: 'DES302', name: 'สัมมนาการออกแบบและเทคโนโลยี', credits: 3, grade: ' ', category: 'core' },
-  { id: '5_4', semester: '1/2569', code: 'LAW301', name: 'กฎหมายทรัพย์สินทางปัญญาเพื่องานออกแบบ', credits: 3, grade: ' ', category: 'free' },
-  { id: '5_5', semester: '1/2569', code: 'GEN107', name: 'หลักปรัชญาของเศรษฐกิจพอเพียง', credits: 3, grade: ' ', category: 'gen_social' },
-  { id: '5_6', semester: '1/2569', code: 'GEN108', name: 'ภาวะผู้นำและบุคลิกภาพ', credits: 1, grade: ' ', category: 'gen_human' }
-];
-
-const GRADE_VALUES = {
-  'A': 4.0, 'B+': 3.5, 'B': 3.0, 'C+': 2.5, 'C': 2.0, 'D+': 1.5, 'D': 1.0, 'F': 0.0,
-  'S': null, 'W': null, 'I': null, ' ': null
-};
-
-const COLOR_THEMES = {
-  luxuryNavy: {
-    name: 'Luxury Navy (กรมท่าหรู)',
-    bg: 'bg-[#0f172a]',
-    text: 'text-slate-100',
-    textMuted: 'text-slate-400',
-    inset: 'shadow-[inset_4px_4px_8px_#080c16,inset_-4px_-4px_8px_#16223e]',
-    outset: 'shadow-[5px_5px_10px_#080c16,-5px_-5px_10px_#16223e]',
-    btnActive: 'shadow-[inset_3px_3px_6px_#080c16,inset_-3px_-3px_6px_#16223e] text-amber-400 font-bold border border-amber-400/20',
-    btnText: 'text-slate-200',
-    primaryColor: '#6366f1'
-  },
-  obsidianDark: {
-    name: 'Obsidian Black (ดำคลาสสิก)',
-    bg: 'bg-[#121214]',
-    text: 'text-gray-100',
-    textMuted: 'text-gray-400',
-    inset: 'shadow-[inset_4px_4px_8px_#09090b,inset_-4px_-4px_8px_#1b1b20]',
-    outset: 'shadow-[5px_5px_10px_#09090b,-5px_-5px_10px_#1b1b20]',
-    btnActive: 'shadow-[inset_3px_3px_6px_#09090b,inset_-3px_-3px_6px_#1b1b20] text-emerald-400 font-bold',
-    btnText: 'text-gray-300',
-    primaryColor: '#10b981'
-  },
-  neonCyber: {
-    name: 'Neon Cyberpunk (นีออนเกลส์)',
-    bg: 'bg-[#05050a]',
-    text: 'text-cyan-400',
-    textMuted: 'text-slate-500',
-    inset: 'shadow-[inset_4px_4px_10px_#010103,inset_-4px_-4px_10px_#11111e] border border-cyan-950/40',
-    outset: 'shadow-[4px_4px_10px_#010103,-4px_-4px_10px_#11111e] border border-cyan-500/10',
-    btnActive: 'shadow-[inset_2px_2px_5px_#010103,inset_-2px_-2px_5px_#11111e] text-pink-500 border border-pink-500/30',
-    btnText: 'text-cyan-500/80',
-    primaryColor: '#00f0ff'
-  },
-  creamSlight: {
-    name: 'Soft Light Cream (ครีมเกรดพรีเมียม)',
-    bg: 'bg-[#e5e9f0]',
-    text: 'text-slate-800',
-    textMuted: 'text-slate-500',
-    inset: 'shadow-[inset_4px_4px_8px_#c5cad4,inset_-4px_-4px_8px_#ffffff]',
-    outset: 'shadow-[5px_5px_10px_#c5cad4,-5px_-5px_10px_#ffffff]',
-    btnActive: 'shadow-[inset_3px_3px_6px_#c5cad4,inset_-3px_-3px_6px_#ffffff] text-indigo-600 font-bold',
-    btnText: 'text-slate-600',
-    primaryColor: '#4f46e5'
-  },
-  jadeForest: {
-    name: 'Forest Jade (หยกเขียว)',
-    bg: 'bg-[#eaf0ec]',
-    text: 'text-emerald-900',
-    textMuted: 'text-emerald-700/60',
-    inset: 'shadow-[inset_4px_4px_8px_#cbd1cc,inset_-4px_-4px_8px_#ffffff]',
-    outset: 'shadow-[5px_5px_10px_#cbd1cc,-5px_-5px_10px_#ffffff]',
-    btnActive: 'shadow-[inset_3px_3px_6px_#cbd1cc,inset_-3px_-3px_6px_#ffffff] text-emerald-600 font-bold',
-    btnText: 'text-emerald-800/80',
-    primaryColor: '#059669'
-  }
-};
-
-const CATEGORIES = {
-  all: 'ทุกกลุ่มวิชา',
-  gen_thai: '1.1 กลุ่มวิชาภาษาไทย',
-  gen_inter: '1.2 กลุ่มวิชาภาษาต่างประเทศ',
-  gen_sci: '1.3 กลุ่มวิชาวิทยาศาสตร์',
-  gen_math: '1.4 กลุ่มวิชาคณิตศาสตร์',
-  gen_social: '1.5 กลุ่มวิชาสังคมศาสตร์',
-  gen_human: '1.6 กลุ่มวิชามนุษยศาสตร์',
-  core: '2. กลุ่มวิชาแกน',
-  major_req: '3.1 กลุ่มวิชาชีพบังคับ',
-  major_elec: '3.2 กลุ่มวิชาชีพเลือก',
-  free: '4. หมวดเลือกเสรี'
-};
-
-const ALL_SEMESTERS = ['1/2567', '2/2567', '1/2568', '2/2568', '1/2569'];
-
-// ระบบการคิด GPAX ของมหาวิทยาลัยไทยส่วนใหญ่จะตัดทศนิยมหลักที่ 3 ลง ไม่ใช่การปัดขึ้น
-const formatGPA = (value) => {
-  if (isNaN(value) || value === 0) return '0.00';
-  return (Math.floor(value * 100) / 100).toFixed(2);
-};
-
-export default function App() {
-  const [subjects, setSubjects] = useState(INITIAL_SUBJECTS);
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [selectedSemester, setSelectedSemester] = useState('1/2569');
-  const [currentTheme, setCurrentTheme] = useState('luxuryNavy');
-  
-  const [formSubject, setFormSubject] = useState({
-    semester: '1/2569',
-    code: '',
-    name: '',
-    credits: 3,
-    grade: ' ',
-    category: 'core'
-  });
-
-  const themeStyle = COLOR_THEMES[currentTheme];
-
-  // นำเข้า Google Fonts (Inter & Sarabun) ลงเว็บบราวเซอร์
-  useEffect(() => {
-    const fontLink = document.createElement('link');
-    fontLink.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Sarabun:wght@300;400;500;600;700;800&display=swap';
-    fontLink.rel = 'stylesheet';
-    document.head.appendChild(fontLink);
-    return () => {
-      document.head.removeChild(fontLink);
-    };
-  }, []);
-
-  const calculatedData = useMemo(() => {
-    let cumulativeGP = 0;
-    let cumulativeCA = 0;
-    let cumulativeCE = 0;
-    let cumulativeGPACredits = 0;
-
-    const semesterBreakdown = {};
-
-    ALL_SEMESTERS.forEach(sem => {
-      const semSubjects = subjects.filter(sub => sub.semester === sem);
-      
-      let semCA = 0;
-      let semCE = 0;
-      let semGPACredits = 0;
-      let semGP = 0;
-      let hasF = false;
-
-      semSubjects.forEach(sub => {
-        const val = GRADE_VALUES[sub.grade];
-        const credits = Number(sub.credits);
-
-        if (sub.grade === 'F') {
-          hasF = true;
-        }
-
-        if (sub.grade !== ' ') {
-          semCA += credits;
-
-          if (sub.grade !== 'F' && sub.grade !== 'W' && sub.grade !== 'I') {
-            semCE += credits;
-          }
-
-          if (val !== null && sub.grade !== 'W' && sub.grade !== 'I' && sub.grade !== 'S') {
-            semGPACredits += credits;
-            semGP += (val * credits);
-          }
-        }
-      });
-
-      const semGPA = semGPACredits > 0 ? (semGP / semGPACredits) : 0;
-
-      cumulativeCA += semCA;
-      cumulativeCE += semCE;
-      cumulativeGPACredits += semGPACredits;
-      cumulativeGP += semGP;
-
-      const currentGPAX = cumulativeGPACredits > 0 ? (cumulativeGP / cumulativeGPACredits) : 0;
-
-      // วิทยทัณฑ์ตามเงื่อนไขคะแนนสะสมจริงในแต่ละช่วงเทอม
-      let statusLabel = 'ปกติ';
-      let statusColor = 'text-emerald-400';
-      const formattedCurrentGPAX = parseFloat(formatGPA(currentGPAX));
-
-      if (formattedCurrentGPAX > 0 && formattedCurrentGPAX < 1.75) {
-        statusLabel = 'วิทยทัณฑ์ < 1.75';
-        statusColor = 'text-rose-400 font-extrabold animate-pulse';
-      } else if (formattedCurrentGPAX >= 1.75 && formattedCurrentGPAX < 2.00) {
-        statusLabel = 'วิทยทัณฑ์ < 2.00';
-        statusColor = 'text-amber-400 font-bold';
-      }
-
-      semesterBreakdown[sem] = {
-        subjects: semSubjects,
-        ca: semCA,
-        ce: semCE,
-        gp: semGP,
-        gpa: formatGPA(semGPA),
-        cumCA: cumulativeCA,
-        cumCE: cumulativeCE,
-        cumCC: cumulativeGPACredits,
-        cumGP: cumulativeGP,
-        gpax: formatGPA(currentGPAX),
-        statusLabel,
-        statusColor,
-        hasF
-      };
-    });
-
-    const latestSem = ALL_SEMESTERS[ALL_SEMESTERS.length - 1];
-    const overallGPAX = parseFloat(semesterBreakdown[latestSem]?.gpax || '0.00');
-    const overallCE = semesterBreakdown[latestSem]?.cumCE || 0;
-
-    // คำนวณวิเคราะห์เกณฑ์เกียรตินิยม
-    let honorsResult = 'ไม่เข้าเกณฑ์เกียรตินิยม';
-    let honorsSubText = 'เกรดเฉลี่ยสะสมปัจจุบันไม่ถึงเกณฑ์ 3.25';
-    const totalFCount = subjects.filter(s => s.grade === 'F').length;
-    const totalWCount = subjects.filter(s => s.grade === 'W').length;
-
-    if (totalFCount > 0) {
-      honorsSubText = 'ไม่ได้รับเกียรตินิยมเนื่องจากมีผลการเรียน F ในประวัติ';
-    } else if (overallGPAX >= 3.75) {
-      honorsResult = 'เกียรตินิยมอันดับ 1 🏆';
-      honorsSubText = `ว่าที่เกียรตินิยม (สะสมแล้ว ${overallCE} นก. ขาดอีก ${Math.max(0, 133-overallCE)} นก.)`;
-    } else if (overallGPAX >= 3.25) {
-      honorsResult = 'เกียรตินิยมอันดับ 2 🥈';
-      honorsSubText = `ว่าที่เกียรตินิยม (สะสมแล้ว ${overallCE} นก. ขาดอีก ${Math.max(0, 133-overallCE)} นก.)`;
-    }
-
-    // คำนวณจำแนกหน่วยกิตหมวดหมู่ย่อย
-    const categoryProgress = {};
-    Object.keys(CATEGORIES).forEach(cat => { categoryProgress[cat] = 0; });
-    subjects.forEach(sub => {
-      if (sub.grade !== ' ' && sub.grade !== 'F' && sub.grade !== 'W' && sub.grade !== 'I') {
-        categoryProgress[sub.category] = (categoryProgress[sub.category] || 0) + Number(sub.credits);
-      }
-    });
-
-    return {
-      semesterBreakdown,
-      overallGPAX,
-      overallCE,
-      honorsResult,
-      honorsSubText,
-      categoryProgress,
-      totalFCount,
-      totalWCount
-    };
-  }, [subjects]);
-
-  const setQuickGrade = (id, nextGrade) => {
-    setSubjects(prev => prev.map(s => s.id === id ? { ...s, grade: nextGrade } : s));
-  };
-
-  const removeSubject = (id) => {
-    setSubjects(prev => prev.filter(s => s.id !== id));
-  };
-
-  const addSubjectToPlan = (e) => {
-    e.preventDefault();
-    if (!formSubject.code || !formSubject.name) return;
-    const id = 'custom_' + Date.now().toString();
-    setSubjects(prev => [...prev, { ...formSubject, id, semester: selectedSemester }]);
-    setFormSubject({
-      semester: selectedSemester,
-      code: '',
-      name: '',
-      credits: 3,
-      grade: ' ',
-      category: 'core'
-    });
-  };
-
-  const simulationInsight = useMemo(() => {
-    const uncalculatedSub = subjects.filter(s => s.semester === '1/2569' && s.grade === ' ');
-    const calculatedSub = subjects.filter(s => !(s.semester === '1/2569' && s.grade === ' '));
-    
-    let prevGP = 0;
-    let prevCredits = 0;
-    calculatedSub.forEach(s => {
-      const v = GRADE_VALUES[s.grade];
-      if (v !== null && s.grade !== 'S' && s.grade !== 'W') {
-        prevGP += (v * Number(s.credits));
-        prevCredits += Number(s.credits);
-      }
-    });
-
-    const activeCredits = uncalculatedSub.reduce((acc, curr) => acc + Number(curr.credits), 0);
-    const targetPointsNeeded = (2.00 * (prevCredits + activeCredits)) - prevGP;
-    const requiredTermGPA = activeCredits > 0 ? (targetPointsNeeded / activeCredits) : 0;
-
-    return {
-      activeCredits,
-      requiredTermGPA: requiredTermGPA > 0 ? requiredTermGPA.toFixed(2) : '0.00',
-      isImpossible: requiredTermGPA > 4.0,
-      isAlreadySafe: (prevGP / prevCredits) >= 2.00,
-    };
-  }, [subjects]);
-
-  return (
-    <div className={`min-h-screen ${themeStyle.bg} ${themeStyle.text} flex flex-col items-center justify-start py-6 px-4 font-sans transition-all duration-300`} style={{ fontFamily: 'Sarabun, Inter, sans-serif' }}>
-      
-      {/* SAMSUNG S26 FRAME */}
-      <div className="w-full max-w-[412px] min-h-[890px] rounded-[50px] border-[10px] border-[#222] bg-[#0c0d12] shadow-2xl relative flex flex-col overflow-hidden">
-        
-        {/* Top Status Bar */}
-        <div className="h-10 bg-black/90 w-full px-6 flex justify-between items-center text-[11px] text-gray-400 z-50">
-          <div className="flex items-center gap-1.5 font-bold">
-            <span>07:32</span> <span className="text-[9px] opacity-70">AM</span>
-          </div>
-          <div className="w-4 h-4 bg-black rounded-full border border-gray-800 -mt-1 shadow-inner" />
-          <div className="flex items-center gap-1.5">
-            <span className="text-[10px] tracking-widest font-black text-indigo-400">5G</span>
-            <Wifi className="w-3.5 h-3.5" />
-            <div className="flex items-center gap-1">
-              <span>78%</span>
-              <Battery className="w-4 h-4 text-emerald-400 rotate-90" />
-            </div>
-          </div>
-        </div>
-
-        {/* Header Title Bar */}
-        <div className="px-5 pt-4 pb-3 flex flex-col gap-3">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <div className={`p-2.5 rounded-2xl ${themeStyle.outset} flex items-center justify-center`}>
-                <GraduationCap className="w-5 h-5 text-indigo-400" />
-              </div>
-              <div>
-                <h1 className="text-xs font-black tracking-tight uppercase">DDT Grade Planner</h1>
-                <p className="text-[9px] opacity-60">Digital Design & Technology</p>
-              </div>
-            </div>
-            <button 
-              onClick={() => { if(window.confirm('ต้องการรีเซ็ตค่าเริ่มต้นของเกรดตามภาพ Transcript ทั้งหมด?')) setSubjects(INITIAL_SUBJECTS); }}
-              className={`p-2 rounded-xl ${themeStyle.outset} text-gray-400 hover:text-red-400 transition-colors`}
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-            </button>
-          </div>
-
-          {/* Theme Selection */}
-          <div className={`p-2 rounded-2xl ${themeStyle.inset} flex justify-between items-center`}>
-            <span className="text-[10px] font-extrabold pl-1 opacity-70">ธีมเครื่อง S26:</span>
-            <div className="flex gap-2">
-              {Object.keys(COLOR_THEMES).map((key) => (
-                <button
-                  key={key}
-                  onClick={() => setCurrentTheme(key)}
-                  className={`w-5 h-5 rounded-full border-2 transition-transform ${currentTheme === key ? 'border-indigo-400 scale-125' : 'border-transparent opacity-50'}`}
-                  style={{ backgroundColor: COLOR_THEMES[key].primaryColor }}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Viewport content */}
-        <div className="flex-1 overflow-y-auto px-4 pb-24 space-y-4 overflow-x-hidden" style={{ maxHeight: '710px' }}>
-          
-          {/* TAB 1: Dashboard View */}
-          {activeTab === 'dashboard' && (
-            <div className="space-y-4 animate-fadeIn">
-              
-              {/* GPAX Plate with customized Truncation Logic */}
-              <div className={`p-5 rounded-[30px] ${themeStyle.outset} text-center space-y-3 relative`}>
-                <p className="text-[10px] uppercase tracking-wider font-extrabold opacity-60">ผลการเรียนเฉลี่ยสะสม (GPAX)</p>
-                <div className="text-5xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-teal-400">
-                  {calculatedData.overallGPAX.toFixed(2)}
-                </div>
-                <div className={`inline-flex px-4 py-1.5 rounded-full text-xs font-black ${calculatedData.overallGPAX >= 2.0 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400 animate-pulse'}`}>
-                  สถานะวิชาการ: {calculatedData.overallGPAX >= 2.0 ? 'ปกติ' : `วิทยทัณฑ์ < 2.00 ⚠️`}
-                </div>
-                <div className="grid grid-cols-2 gap-3 pt-2 text-[11px]">
-                  <div className={`p-2.5 rounded-2xl ${themeStyle.inset}`}>
-                    <span className="block opacity-60 text-[9px] mb-0.5">ผ่านแล้ว (CE)</span>
-                    <strong>{calculatedData.overallCE} / 133 นก.</strong>
-                  </div>
-                  <div className={`p-2.5 rounded-2xl ${themeStyle.inset}`}>
-                    <span className="block opacity-60 text-[9px] mb-0.5">ติด F / W ในประวัติ</span>
-                    <strong className="text-amber-500">F ({calculatedData.totalFCount}) | W ({calculatedData.totalWCount})</strong>
-                  </div>
-                </div>
-              </div>
-
-              {/* Probation Target helper */}
-              <div className={`p-4 rounded-3xl ${themeStyle.outset} space-y-3`}>
-                <div className="flex items-center gap-1.5 border-b border-white/5 pb-2">
-                  <AlertTriangle className="w-4 h-4 text-amber-400" />
-                  <h3 className="text-xs font-black">วิเคราะห์เป้าหมายหลุดวิทยทัณฑ์</h3>
-                </div>
-                {calculatedData.overallGPAX >= 2.00 ? (
-                  <div className="p-3 rounded-2xl bg-emerald-500/10 text-emerald-300 text-xs flex gap-2">
-                    <CheckCircle className="w-4 h-4 text-emerald-400" />
-                    <p>ยินดีด้วย เกรดรวมปลอดภัยพ้นขีดอันตรายแล้ว!</p>
-                  </div>
-                ) : (
-                  <div className="space-y-2 text-xs">
-                    <p className="opacity-85">เทอม 1/2569 มีวิชาว่างรอผลการเรียนอยู่ <span className="text-indigo-400 font-bold">{simulationInsight.activeCredits} หน่วยกิต</span></p>
-                    <div className={`p-3 rounded-2xl ${themeStyle.inset} space-y-1`}>
-                      <div className="flex justify-between items-center">
-                        <span>เกรดเฉลี่ยเทอมนี้ที่ต้องทำได้ขั้นต่ำ:</span>
-                        <strong className="text-sm text-amber-400">{simulationInsight.isImpossible ? 'ไม่เพียงพอ' : simulationInsight.requiredTermGPA}</strong>
-                      </div>
-                      {!simulationInsight.isImpossible && (
-                        <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden mt-1">
-                          <div className="h-full bg-amber-400" style={{ width: `${Math.min(100, (parseFloat(simulationInsight.requiredTermGPA)/4)*100)}%` }} />
-                        </div>
-                      )}
-                      {simulationInsight.isImpossible && <p className="text-[10px] text-red-400">⚠️ ต้องลงทะเบียนเรียนเพิ่มหรือลงรีเกรดเพิ่มเพื่อดึงฐานคะแนน</p>}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Honors reward panel */}
-              <div className={`p-4 rounded-3xl ${themeStyle.outset} space-y-2`}>
-                <div className="flex items-center gap-1.5 border-b border-white/5 pb-2">
-                  <Award className="w-4 h-4 text-indigo-400" />
-                  <h3 className="text-xs font-black">การพิจารณาเกียรตินิยม</h3>
-                </div>
-                <div className={`p-3 rounded-2xl ${themeStyle.inset} text-center`}>
-                  <p className="text-sm font-extrabold text-amber-400">{calculatedData.honorsResult}</p>
-                  <p className="text-[10px] opacity-70 mt-0.5">{calculatedData.honorsSubText}</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* TAB 2: Semester breakdown & grading simulation */}
-          {activeTab === 'semesters' && (
-            <div className="space-y-4 animate-fadeIn">
-              
-              {/* Semester Switcher */}
-              <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-                {ALL_SEMESTERS.map(sem => (
-                  <button
-                    key={sem}
-                    onClick={() => setSelectedSemester(sem)}
-                    className={`px-3 py-2 rounded-xl text-[11px] font-extrabold flex-shrink-0 transition-all ${selectedSemester === sem ? themeStyle.btnActive : `opacity-60 ${themeStyle.outset}`}`}
-                  >
-                    {sem === '1/2569' ? '1/2569 (จำลองเกรด)' : sem}
-                  </button>
-                ))}
-              </div>
-
-              {/* Selected Term statistics summary */}
-              {calculatedData.semesterBreakdown[selectedSemester] && (
-                <div className={`p-4 rounded-3xl ${themeStyle.outset} space-y-3`}>
-                  <div className="flex justify-between items-center border-b border-white/5 pb-1.5">
-                    <span className="text-xs font-bold text-indigo-400">ผลสรุปภาคเรียน {selectedSemester}</span>
-                    <span className={`text-[10px] font-black ${calculatedData.semesterBreakdown[selectedSemester].statusColor}`}>
-                      {calculatedData.semesterBreakdown[selectedSemester].statusLabel}
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-4 gap-2 text-center text-[10px]">
-                    <div className={`p-2 rounded-xl ${themeStyle.inset}`}>
-                      <span className="block opacity-60">GPA เทอม</span>
-                      <strong className="text-indigo-300 text-xs">{calculatedData.semesterBreakdown[selectedSemester].gpa}</strong>
-                    </div>
-                    <div className={`p-2 rounded-xl ${themeStyle.inset}`}>
-                      <span className="block opacity-60">GPAX สะสม</span>
-                      <strong className="text-purple-300 text-xs">{calculatedData.semesterBreakdown[selectedSemester].gpax}</strong>
-                    </div>
-                    <div className={`p-2 rounded-xl ${themeStyle.inset}`}>
-                      <span className="block opacity-60">ลงทะเบียน</span>
-                      <strong className="text-xs">{calculatedData.semesterBreakdown[selectedSemester].ca} นก.</strong>
-                    </div>
-                    <div className={`p-2 rounded-xl ${themeStyle.inset}`}>
-                      <span className="block opacity-60">สะสมรวม</span>
-                      <strong className="text-xs">{calculatedData.semesterBreakdown[selectedSemester].cumCE} นก.</strong>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Subject lists with dropdown grade updates */}
-              <div className={`p-4 rounded-3xl ${themeStyle.outset} space-y-3`}>
-                <h3 className="text-xs font-black">วิชาเรียนในเทอมนี้</h3>
-                <div className="space-y-3 max-h-[250px] overflow-y-auto pr-1">
-                  {subjects.filter(sub => sub.semester === selectedSemester).map(sub => (
-                    <div key={sub.id} className={`p-3 rounded-2xl ${themeStyle.inset} flex justify-between items-center gap-2`}>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-[10px] font-black text-indigo-400">{sub.code}</span>
-                          <span className="text-[9px] opacity-50">({sub.credits} นก.)</span>
-                        </div>
-                        <p className="text-xs font-bold truncate">{sub.name}</p>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <select
-                          value={sub.grade}
-                          onChange={(e) => setQuickGrade(sub.id, e.target.value)}
-                          className="bg-slate-800 text-slate-200 border border-slate-700 rounded-lg text-xs p-1 font-bold outline-none"
-                        >
-                          <option value=" "> </option>
-                          {Object.keys(GRADE_VALUES).filter(k => k !== ' ').map(g => (
-                            <option key={g} value={g}>{g}</option>
-                          ))}
-                        </select>
-                        {sub.id.startsWith('custom_') && (
-                          <button onClick={() => removeSubject(sub.id)} className="text-red-400 hover:text-red-500">
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Dynamic addition form */}
-              <form onSubmit={addSubjectToPlan} className={`p-4 rounded-3xl ${themeStyle.outset} space-y-3`}>
-                <h4 className="text-xs font-black flex items-center gap-1">
-                  <Plus className="w-3.5 h-3.5 text-emerald-400" /> ทดลองเพิ่มวิชาลงทะเบียนเพิ่ม
-                </h4>
-                <div className="grid grid-cols-2 gap-2">
-                  <input type="text" placeholder="รหัสวิชา" required value={formSubject.code}
-                    onChange={(e) => setFormSubject({...formSubject, code: e.target.value.toUpperCase()})}
-                    className={`p-2 rounded-xl text-xs ${themeStyle.inset} bg-transparent border-none outline-none text-slate-100`} />
-                  <input type="text" placeholder="ชื่อวิชา" required value={formSubject.name}
-                    onChange={(e) => setFormSubject({...formSubject, name: e.target.value})}
-                    className={`p-2 rounded-xl text-xs ${themeStyle.inset} bg-transparent border-none outline-none text-slate-100`} />
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <select value={formSubject.credits} onChange={(e) => setFormSubject({...formSubject, credits: Number(e.target.value)})}
-                    className={`p-2 rounded-xl text-xs ${themeStyle.inset} bg-slate-800 text-slate-100`}>
-                    <option value="1">1 นก.</option><option value="2">2 นก.</option><option value="3">3 นก.</option><option value="4">4 นก.</option>
-                  </select>
-                  <select value={formSubject.category} onChange={(e) => setFormSubject({...formSubject, category: e.target.value})}
-                    className={`p-2 rounded-xl text-xs ${themeStyle.inset} bg-slate-800 text-slate-100`}>
-                    {Object.entries(CATEGORIES).filter(([k]) => k !== 'all').map(([key, label]) => (
-                      <option key={key} value={key}>{label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex gap-2">
-                  <select value={formSubject.grade} onChange={(e) => setFormSubject({...formSubject, grade: e.target.value})}
-                    className={`p-2 rounded-xl text-xs ${themeStyle.inset} bg-slate-800 text-slate-100 flex-1`}>
-                    <option value=" ">ยังไม่ระบุเกรด</option>
-                    {Object.keys(GRADE_VALUES).filter(k => k !== ' ').map(g => (
-                      <option key={g} value={g}>เกรดหวังผล: {g}</option>
-                    ))}
-                  </select>
-                  <button type="submit" className="px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-xl text-xs font-bold flex items-center gap-1">
-                    <Save className="w-3.5 h-3.5" /> บันทึก
-                  </button>
-                </div>
-              </form>
-            </div>
-          )}
-
-          {/* TAB 3: Curriculum progresses */}
-          {activeTab === 'curriculum' && (
-            <div className="space-y-4 animate-fadeIn">
-              <div className={`p-4 rounded-3xl ${themeStyle.outset} space-y-3`}>
-                <div className="flex items-center gap-1.5 border-b border-white/5 pb-2">
-                  <PieChart className="w-4 h-4 text-teal-400" />
-                  <h3 className="text-xs font-black">ความคืบหน้าของหน่วยกิตแยกกลุ่มวิชา</h3>
-                </div>
-                <div className="space-y-3 max-h-[460px] overflow-y-auto pr-1 text-[11px]">
-                  {Object.entries(CATEGORIES).filter(([k]) => k !== 'all').map(([key, label]) => {
-                    const earned = calculatedData.categoryProgress[key] || 0;
-                    let required = 30;
-                    if (key.startsWith('gen_')) required = 3; 
-                    if (key === 'gen_inter') required = 6;
-                    if (key === 'gen_thai') required = 4;
-                    if (key === 'core') required = 27;
-                    if (key === 'major_req') required = 45;
-                    if (key === 'free') required = 6;
-
-                    const pct = Math.min((earned / required) * 100, 100);
-
-                    return (
-                      <div key={key} className={`p-3 rounded-2xl ${themeStyle.inset} space-y-1.5`}>
-                        <div className="flex justify-between items-center">
-                          <span className="font-bold opacity-80 truncate max-w-[200px]">{label}</span>
-                          <span className="font-black text-indigo-400">{earned} / {required} นก.</span>
-                        </div>
-                        <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                          <div className="h-full bg-gradient-to-r from-teal-400 to-indigo-500" style={{ width: `${pct}%` }} />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          )}
-
-        </div>
-
-        {/* Bottom Tab Bar navigation */}
-        <div className="absolute bottom-0 left-0 right-0 h-20 bg-black/90 backdrop-blur-md border-t border-white/5 px-6 flex justify-between items-center z-50">
-          <button onClick={() => setActiveTab('dashboard')} className={`flex flex-col items-center gap-1 ${activeTab === 'dashboard' ? 'text-indigo-400 font-extrabold' : 'text-gray-500'}`}>
-            <TrendingUp className="w-5 h-5" /> <span className="text-[9px]">หน้าหลัก</span>
-          </button>
-          <button onClick={() => setActiveTab('semesters')} className={`flex flex-col items-center gap-1 ${activeTab === 'semesters' ? 'text-indigo-400 font-extrabold' : 'text-gray-500'}`}>
-            <Calendar className="w-5 h-5" /> <span className="text-[9px]">แผนการศึกษา</span>
-          </button>
-          <button onClick={() => setActiveTab('curriculum')} className={`flex flex-col items-center gap-1 ${activeTab === 'curriculum' ? 'text-indigo-400 font-extrabold' : 'text-gray-500'}`}>
-            <BookOpen className="w-5 h-5" /> <span className="text-[9px]">หมวดวิชา</span>
-          </button>
-        </div>
-
-      </div>
-    </div>
-  );
-}
